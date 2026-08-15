@@ -31,6 +31,24 @@ function stripPrefix(line: string): string {
   return line.replace(/^\s*(\d+[\.\)\-]|[-•*])\s*/, '').trim()
 }
 
+function CheckIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M20 6 9 17l-5-5" />
+    </svg>
+  )
+}
+
 export default function Formatter() {
   const [input, setInput] = useState<string>('1.omah\n2.kampung\n3.jalan ati ajor')
   const [mode, setMode] = useState<CaseMode>('title')
@@ -63,69 +81,72 @@ export default function Formatter() {
   }
 
   return (
-    <div className="flex min-h-full items-center justify-center">
-      <div className="w-full max-w-3xl rounded-2xl border border-white/10 bg-gradient-to-b from-white/10 to-white/5 p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_25px_60px_-15px_rgba(0,0,0,0.6)] backdrop-blur-xl sm:p-8">
-        {/* ===== Toolbar atas ===== */}
-        <div className="mb-4 flex items-center justify-between">
-          <label
-            htmlFor="denah-input"
-            className="text-xs font-medium uppercase tracking-wider text-slate-400"
-          >
-            Input
-          </label>
-          <button
-            type="button"
-            onClick={() => setInput('')}
-            className="rounded-md px-2 py-1 text-xs text-slate-500 transition-colors hover:bg-white/5 hover:text-rose-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-400/40"
-          >
-            Hapus
-          </button>
-        </div>
+    <div className="card-enter w-full max-w-3xl rounded-md border border-line bg-white p-6 shadow-[0_2px_12px_rgba(0,0,0,0.06)] sm:p-8">
+      {/* ===== Toolbar atas ===== */}
+      <div className="mb-4 flex items-center justify-between">
+        <label
+          htmlFor="denah-input"
+          className="text-sm font-medium tracking-wide text-ink"
+        >
+          Input
+        </label>
+        <button
+          type="button"
+          onClick={() => setInput('')}
+          className="rounded-sm border-[1.5px] border-line-strong px-3 py-1.5 text-sm font-medium text-ink transition-colors hover:border-danger hover:bg-danger/5 hover:text-danger focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
+        >
+          Hapus
+        </button>
+      </div>
 
-        {/* ===== Area teks ===== */}
-        <textarea
-          id="denah-input"
-          value={input}
-          onChange={handleInputChange}
-          placeholder={'1.omah\n2.kampung\n3.jalan ati ajor'}
-          className="studio-scroll min-h-[320px] w-full resize-none rounded-xl border border-white/10 bg-slate-900/60 p-4 text-sm leading-relaxed text-slate-100 outline-none transition-all focus:border-blue-400 focus:shadow-[0_0_0_3px_rgba(59,130,246,0.25)]"
-        />
+      {/* ===== Area teks ===== */}
+      <textarea
+        id="denah-input"
+        value={input}
+        onChange={handleInputChange}
+        placeholder={'1.omah\n2.kampung\n3.jalan ati ajor'}
+        className="studio-scroll min-h-[320px] w-full resize-none rounded-sm border border-line-strong bg-white p-4 text-sm leading-relaxed text-ink outline-none transition-colors placeholder:text-slate-400 focus:border-brand focus:ring-2 focus:ring-brand focus:ring-offset-2"
+      />
 
-        {/* ===== Toolbar bawah ===== */}
-        <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
-          <select
-            aria-label="Mode huruf"
-            value={mode}
-            onChange={(e) => setMode(e.target.value as CaseMode)}
-            className="h-12 w-full cursor-pointer rounded-xl border border-white/10 bg-slate-900/60 px-3.5 text-sm text-slate-200 outline-none transition-all focus:border-blue-400 focus:shadow-[0_0_0_3px_rgba(59,130,246,0.25)] [color-scheme:dark] sm:w-auto sm:shrink-0"
-          >
-            {MODES.map((m) => (
-              <option key={m.id} value={m.id} className="bg-slate-900 text-slate-200">
-                {m.label}
-              </option>
-            ))}
-          </select>
+      {/* ===== Toolbar bawah ===== */}
+      <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
+        <select
+          aria-label="Mode huruf"
+          value={mode}
+          onChange={(e) => setMode(e.target.value as CaseMode)}
+          className="h-12 w-full cursor-pointer rounded-sm border border-line-strong bg-white px-3.5 text-sm text-ink outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand focus:ring-offset-2 sm:w-auto sm:shrink-0"
+        >
+          {MODES.map((m) => (
+            <option key={m.id} value={m.id} className="bg-white text-ink">
+              {m.label}
+            </option>
+          ))}
+        </select>
 
-          <button
-            type="button"
-            onClick={handleCopy}
-            disabled={!lines.length}
-            aria-live="polite"
-            className={`flex h-12 w-full items-center justify-center whitespace-nowrap rounded-xl font-medium text-white transition-all active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none sm:w-auto sm:flex-1 ${
-              copied
-                ? 'bg-gradient-to-r from-emerald-500 to-emerald-400 shadow-[0_0_30px_rgba(16,185,129,0.4)]'
-                : copyError
-                  ? 'bg-gradient-to-r from-rose-500 to-rose-400 shadow-[0_0_30px_rgba(244,63,94,0.4)]'
-                  : 'bg-gradient-to-r from-blue-500 to-blue-400 shadow-[0_0_30px_rgba(59,130,246,0.4)] hover:from-blue-400 hover:to-blue-300 hover:shadow-[0_0_45px_rgba(59,130,246,0.6)]'
-            }`}
-          >
-            {copied
-              ? 'Disalin ✓'
+        <button
+          type="button"
+          onClick={handleCopy}
+          disabled={!lines.length}
+          aria-live="polite"
+          className={`flex h-12 w-full items-center justify-center gap-2 whitespace-nowrap rounded-sm px-4 text-sm font-semibold text-white transition-[transform,box-shadow,background-color] duration-200 enabled:hover:scale-[1.03] enabled:hover:shadow-[0_2px_8px_rgba(0,0,0,0.08)] active:translate-y-[-1px] disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none sm:w-auto sm:flex-1 ${
+            copied
+              ? 'bg-success'
               : copyError
-                ? 'Gagal nyalin'
-                : `Salin → CorelDraw${lines.length ? ` (${lines.length})` : ''}`}
-          </button>
-        </div>
+                ? 'bg-danger'
+                : 'bg-brand enabled:hover:bg-brand-dark'
+          }`}
+        >
+          {copied ? (
+            <>
+              <CheckIcon />
+              Disalin
+            </>
+          ) : copyError ? (
+            'Gagal nyalin'
+          ) : (
+            `Salin → CorelDraw${lines.length ? ` (${lines.length})` : ''}`
+          )}
+        </button>
       </div>
     </div>
   )
