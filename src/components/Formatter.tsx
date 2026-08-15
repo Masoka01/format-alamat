@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState, type ChangeEvent } from 'react'
 import Pencil, { type Mood } from './Pencil'
-import Confetti from './Confetti'
 import StatusBar from './StatusBar'
 
 type CaseMode = 'title' | 'upper' | 'lower' | 'none'
@@ -63,13 +62,10 @@ export default function Formatter() {
   const [copyError, setCopyError] = useState<boolean>(false)
   const [rainbow, setRainbow] = useState<boolean>(false)
   const [mood, setMood] = useState<Mood>('idle')
-  const [burst, setBurst] = useState<number>(0)
-  const [copyFrom, setCopyFrom] = useState<{ x: number; y: number }>({ x: 0, y: 0 })
   const [msgIndex, setMsgIndex] = useState<number>(0)
 
   const moodTimer = useRef<number | null>(null)
   const rainbowTimer = useRef<number | null>(null)
-  const copyBtnRef = useRef<HTMLButtonElement>(null)
 
   const lines: string[] = input
     .split('\n')
@@ -110,12 +106,6 @@ export default function Formatter() {
 
   function handleCopy() {
     if (!lines.length) return
-    const rect = copyBtnRef.current?.getBoundingClientRect()
-    setCopyFrom({
-      x: rect ? rect.left + rect.width / 2 : window.innerWidth / 2,
-      y: rect ? rect.top : window.innerHeight / 2,
-    })
-    setBurst((b) => b + 1)
     setMoodTemporarily('happy', 2000)
     navigator.clipboard
       .writeText(lines.join('\n'))
@@ -235,7 +225,6 @@ export default function Formatter() {
             )}
           </div>
           <button
-            ref={copyBtnRef}
             onClick={handleCopy}
             disabled={!lines.length}
             className="mt-3 w-full rounded-xl bg-gradient-to-r from-blue-500 to-blue-400 py-3 font-medium text-white shadow-[0_0_30px_rgba(59,130,246,0.4)] transition-all hover:from-blue-400 hover:to-blue-300 hover:shadow-[0_0_45px_rgba(59,130,246,0.6)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
@@ -247,9 +236,6 @@ export default function Formatter() {
 
       {/* ===== STATUS BAR ===== */}
       <StatusBar message={pickMessage()} modeLabel={modeLabel} />
-
-      {/* ===== CONFETTI ===== */}
-      <Confetti burst={burst} from={copyFrom} />
     </div>
   )
 }
