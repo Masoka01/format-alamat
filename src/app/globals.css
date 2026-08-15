@@ -212,10 +212,10 @@
 }
 
 /* ---- Mood pensil ---- */
-.mood-idle   .pencil { animation: pencil-bob 2.4s ease-in-out infinite; }
-.mood-typing .pencil { animation: pencil-type 0.5s ease-in-out infinite; }
-.mood-happy  .pencil { animation: pencil-happy 0.9s ease-in-out; }
-.mood-sad    .pencil {
+.mood-idle.pencil   { animation: pencil-bob 2.4s ease-in-out infinite; }
+.mood-typing.pencil { animation: pencil-type 0.5s ease-in-out infinite; }
+.mood-happy.pencil  { animation: pencil-happy 0.9s ease-in-out; }
+.mood-sad.pencil    {
   animation: pencil-sad 2s ease-in-out infinite;
   filter: grayscale(0.85) drop-shadow(0 6px 12px rgba(0, 0, 0, 0.45));
 }
