@@ -36,7 +36,12 @@ function applyCase(str: string, mode: CaseMode): string {
 }
 
 function stripPrefix(line: string): string {
-  return line.replace(/^\s*(\d+[\.\)\-]|[-•*])\s*/, '').trim()
+  return line
+    .replace(/^\s*(\d+[\.\)\-]|[-•*])\s*/, '')
+    // Buang karakter tak terlihat (artefak salin dari WhatsApp/Telegram, mis. WORD JOINER U+2060)
+    // yang membuat huruf pertama turun ke huruf kecil di toTitleCase dan ikut tersalin ke CorelDraw
+    .replace(/[\u200B-\u200F\u202A-\u202E\u2060-\u2064\uFEFF]/g, '')
+    .trim()
 }
 
 function formatLines(raw: string, mode: CaseMode): string[] {
