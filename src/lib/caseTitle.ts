@@ -30,7 +30,7 @@ function normalisasiToken(w: string): string {
 
   // 2) gelar tanpa titik
   const kunci = inti.toLowerCase()
-  if (kunci in GELAR_TANPA_TITIK) {
+  if (Object.hasOwn(GELAR_TANPA_TITIK, kunci)) {
     return imbuhanAwal + GELAR_TANPA_TITIK[kunci] + imbuhanAkhir
   }
 
