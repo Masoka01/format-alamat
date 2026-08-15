@@ -26,9 +26,10 @@ Pipeline lintas-baris dengan state `sectionTurutUndang` (awal: mati), berlaku pe
 1. Baris yang mengandung kata `turut mengundang` (case-insensitive, pola `\bturut mengundang\b`) → baris judul: tetap tanpa bullet, state diaktifkan.
 2. Baris ber-awalan daftar saat state aktif → diganti `• ` (mis. `1. Keluarga Besar Alm. Bpk H. Ropa'i` → `• Keluarga Besar Alm. Bpk H. Ropa'i`).
 3. Baris ber-awalan daftar saat state mati → diganti `- ` (alamat, dsb.).
-4. Baris polos lain (tanpa awalan daftar, bukan judul turut-mengundang) → state dimatikan.
+4. Baris polos lain (berisi teks, tanpa awalan daftar, bukan judul turut-mengundang) → state dimatikan.
+5. Baris kosong (atau hanya spasi) → tidak mengubah state; baris kosong tetap difilter di Formatter.
 
-Contoh: daftar nama di bawah "Turut mengundang mempelai wanita/pria" → `• `; daftar alamat (tanpa judul tersebut) → `- `; jika dalam satu input ada bagian undangan lalu bagian alamat, baris polos pemisah menutup mode.
+Contoh: daftar nama di bawah "Turut mengundang mempelai wanita/pria" → `• `; daftar alamat (tanpa judul tersebut) → `- `; jika dalam satu input ada bagian undangan lalu bagian alamat, baris polos pemisah menutup mode; baris kosong di tengah section tidak mengubah mode.
 
 ### Aturan spasi titik
 
@@ -116,6 +117,7 @@ Regression:
 - Typo tetap berfungsi (`1. JLN merdeka` → `- Jalan Merdeka`)
 - Section turut mengundang: judul `Turut mengundang mempelai wanita` + `1. Keluarga Besar Alm. Bpk H. Ropa'i` → judul tanpa bullet, `• Keluarga Besar Alm. Bpk H. Ropa'i`; `1. Kamaludin (RT)` → `• Kamaludin (RT)`
 - Baris polos menutup mode: `Turut mengundang mempelai wanita` → daftar → `Alamat` (baris polos) → `1. Jl.Raya Sudirman` → `- Jalan. Raya Sudirman`
+- Baris kosong di dalam section tidak mengubah mode: `Turut mengundang mempelai wanita` → `1. Asep Saepul Jamal` → (baris kosong) → `1. Kamaludin (RT)` → `• Kamaludin (RT)`
 - Alamat tanpa judul turut-mengundang → tetap `- ` (kasus `1. omah kampung` di atas)
 - Mode upper/lower/none tetap berfungsi
 - `npx tsc -b --force` exit 0, `npm run build` PASS, cek live di browser (0 console error)
