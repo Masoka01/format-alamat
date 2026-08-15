@@ -7,7 +7,7 @@ import {
   type KeyboardEvent as ReactKeyboardEvent,
 } from 'react'
 import { fixAddressTypos } from '@/lib/typoFix'
-import { formatListLine } from '@/lib/listFormat'
+import { formatList } from '@/lib/listFormat'
 import { toTitleCase } from '@/lib/caseTitle'
 
 type CaseMode = 'title' | 'upper' | 'lower' | 'none'
@@ -34,9 +34,7 @@ function applyCase(str: string, mode: CaseMode): string {
 }
 
 function formatLines(raw: string, mode: CaseMode): string[] {
-  return raw
-    .split('\n')
-    .map(formatListLine)
+  return formatList(raw.split('\n'))
     .filter(Boolean)
     .map(fixAddressTypos)
     .map((l) => applyCase(l, mode))
