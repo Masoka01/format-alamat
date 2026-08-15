@@ -1,7 +1,7 @@
 # Denah Formatter
 
 Formatter alamat denah siap pakai untuk CorelDraw.  
-Tech stack: **Next.js 14 · TypeScript · Tailwind CSS**
+Tech stack: **Vite · React 19 · TypeScript · Tailwind CSS**
 
 ## Cara jalankan
 
@@ -10,11 +10,11 @@ npm install
 npm run dev
 ```
 
-Buka http://localhost:3000
+Buka http://localhost:5173
 
 ## Ganti background image
 
-Buka `src/app/globals.css`, ubah variabel di bagian `:root`:
+Buka `src/globals.css`, ubah variabel di bagian `:root`:
 
 ```css
 :root {
@@ -34,19 +34,20 @@ Taruh file gambar di `/public/images/` lalu sesuaikan nama di `--bg-image`.
 
 ```bash
 npm run build
-npm start
+npm run preview
 ```
 
 ## Struktur project
 
 ```
 src/
-├── app/
-│   ├── globals.css   ← pengaturan background di sini
-│   ├── layout.tsx
-│   └── page.tsx
+├── main.tsx        ← entry point
+├── App.tsx
+├── globals.css     ← pengaturan background di sini
 └── components/
-    └── Formatter.tsx
+    ├── Formatter.tsx
+    ├── Pencil.tsx
+    └── StatusBar.tsx
 public/
-└── images/           ← taruh gambar background di sini
+└── images/         ← taruh gambar background di sini
 ```
