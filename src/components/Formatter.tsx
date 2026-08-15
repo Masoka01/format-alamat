@@ -1,6 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState, type ChangeEvent } from 'react'
+import Pencil, { type Mood } from './Pencil'
+import Confetti from './Confetti'
+import StatusBar from './StatusBar'
 
 type CaseMode = 'title' | 'upper' | 'lower' | 'none'
 
@@ -33,10 +36,40 @@ function stripPrefix(line: string): string {
   return line.replace(/^\s*(\d+[\.\)\-]|[-•*])\s*/, '').trim()
 }
 
+const IDLE_POOL = [
+  'Semua tenang. Pensil siap melukis.',
+  'Menunggu teks masuk…',
+  'Bosen. Ajak aku ngetik dong.',
+]
+const EMPTY_MSGS = [
+  'Males nih, isi dulu dong…',
+  'Pensil ini laper, kasih makan teks.',
+]
+const FEW_MSGS = ['Cuma segitu? Ayo, malu sama pensil ini.']
+const MANY_MSGS = ['Wah banyak juga. Semangat ngetiknya.']
+const COPIED_MSGS = [
+  'Terkirim! CorelDraw nangis bahagia.',
+  'Beres. Pensil ini layak naik gaji.',
+  'Sip! Format rapi, hati senang.',
+]
+const FAIL_MSGS = ['Gagal nyalin. Coba lagi ya.']
+
+const pick = (arr: string[]) => arr[Math.floor(Math.random() * arr.length)]
+
 export default function Formatter() {
   const [input, setInput] = useState<string>('1.omah\n2.kampung\n3.jalan ati ajor')
   const [mode, setMode] = useState<CaseMode>('title')
   const [copied, setCopied] = useState<boolean>(false)
+  const [copyError, setCopyError] = useState<boolean>(false)
+  const [rainbow, setRainbow] = useState<boolean>(false)
+  const [mood, setMood] = useState<Mood>('idle')
+  const [burst, setBurst] = useState<number>(0)
+  const [copyFrom, setCopyFrom] = useState<{ x: number; y: number }>({ x: 0, y: 0 })
+  const [msgIndex, setMsgIndex] = useState<number>(0)
+
+  const moodTimer = useRef<number | null>(null)
+  const rainbowTimer = useRef<number | null>(null)
+  const copyBtnRef = useRef<HTMLButtonElement>(null)
 
   const lines: string[] = input
     .split('\n')
@@ -44,83 +77,167 @@ export default function Formatter() {
     .filter(Boolean)
     .map((l) => applyCase(l, mode))
 
-  function handleCopy(): void {
+  const wordCount = lines.join(' ').split(/\s+/).filter(Boolean).length
+  const modeLabel = MODES.find((m) => m.id === mode)!.label
+
+  // Rotasi pesan idle tiap 5 detik
+  useEffect(() => {
+    const t = window.setInterval(() => setMsgIndex((i) => i + 1), 5000)
+    return () => window.clearInterval(t)
+  }, [])
+
+  function setMoodTemporarily(next: Mood, ms: number) {
+    setMood(next)
+    if (moodTimer.current !== null) window.clearTimeout(moodTimer.current)
+    moodTimer.current = window.setTimeout(() => setMood('idle'), ms)
+  }
+
+  function handleInputChange(e: ChangeEvent<HTMLTextAreaElement>) {
+    setInput(e.target.value)
+    setMoodTemporarily('typing', 800)
+  }
+
+  function handleCopy() {
     if (!lines.length) return
-    navigator.clipboard.writeText(lines.join('\n')).then(() => {
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
+    const rect = copyBtnRef.current?.getBoundingClientRect()
+    setCopyFrom({
+      x: rect ? rect.left + rect.width / 2 : window.innerWidth / 2,
+      y: rect ? rect.top : window.innerHeight / 2,
     })
+    setBurst((b) => b + 1)
+    setMoodTemporarily('happy', 2000)
+    navigator.clipboard
+      .writeText(lines.join('\n'))
+      .then(() => {
+        setCopied(true)
+        setCopyError(false)
+        window.setTimeout(() => setCopied(false), 2000)
+      })
+      .catch(() => {
+        setCopyError(true)
+        setMoodTemporarily('sad', 2000)
+      })
+  }
+
+  function triggerRainbow() {
+    setRainbow(true)
+    if (rainbowTimer.current !== null) window.clearTimeout(rainbowTimer.current)
+    rainbowTimer.current = window.setTimeout(() => setRainbow(false), 10000)
+  }
+
+  function pickMessage(): string {
+    if (rainbow) return 'MODE PELANGI! 🌈'
+    if (copyError) return pick(FAIL_MSGS)
+    if (copied) return COPIED_MSGS[msgIndex % COPIED_MSGS.length]
+    if (!input.trim()) return EMPTY_MSGS[msgIndex % EMPTY_MSGS.length]
+    if (lines.length <= 2) return FEW_MSGS[0]
+    if (lines.length > 20) return MANY_MSGS[0]
+    return IDLE_POOL[msgIndex % IDLE_POOL.length]
   }
 
   return (
-    <div className="w-full max-w-2xl bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-6">
-      <h1 className="text-lg font-medium text-gray-800 mb-1">Formatter Alamat Denah</h1>
-      <p className="text-sm text-gray-500 mb-5">
-        Paste teks bernomor, salin hasil langsung ke CorelDraw.
-      </p>
+    <div className={`studio-card flex h-full flex-col gap-6 ${rainbow ? 'rainbow' : ''}`}>
+      {/* ===== HEADER ===== */}
+      <header className="flex h-14 shrink-0 items-center justify-between rounded-xl border border-white/10 bg-white/5 px-5 backdrop-blur-xl">
+        <div className="flex items-center gap-3">
+          <Pencil mood={mood} rainbow={rainbow} onEasterEgg={triggerRainbow} />
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight text-slate-100">
+              Studio Denah
+            </h1>
+            <p className="text-xs text-slate-400">
+              Formatter alamat untuk CorelDraw
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-5 font-mono text-sm text-slate-300">
+          <span title="Baris valid">
+            <span className="text-blue-400">{lines.length}</span> baris
+          </span>
+          <span title="Total kata">
+            <span className="text-blue-400">{wordCount}</span> kata
+          </span>
+        </div>
+      </header>
 
-      {/* Mode kapitalisasi */}
-      <div className="flex flex-wrap gap-2 mb-5">
-        {MODES.map((m) => (
-          <button
-            key={m.id}
-            onClick={() => setMode(m.id)}
-            className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
-              mode === m.id
-                ? 'bg-blue-600 text-white border-blue-600'
-                : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
-            }`}
-          >
-            {m.label}
-          </button>
-        ))}
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
+      {/* ===== MAIN GRID ===== */}
+      <main className="grid min-h-0 flex-1 grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Input */}
-        <div>
-          <div className="flex justify-between items-center mb-2">
-            <label className="text-xs text-gray-500">Input</label>
+        <section className="flex min-h-0 flex-col rounded-xl border border-white/10 bg-white/5 p-4 backdrop-blur-xl">
+          <div className="mb-3 flex items-center justify-between">
+            <label
+              htmlFor="denah-input"
+              className="text-xs font-medium uppercase tracking-wider text-slate-400"
+            >
+              Input
+            </label>
             <button
               onClick={() => setInput('')}
-              className="text-xs text-gray-400 hover:text-gray-600"
+              className="text-xs text-slate-500 transition-colors hover:text-rose-400"
             >
               Hapus
             </button>
           </div>
           <textarea
+            id="denah-input"
             value={input}
-            onChange={(e) => setInput(e.target.value)}
-            rows={10}
+            onChange={handleInputChange}
             placeholder={'1.omah\n2.kampung\n3.jalan ati ajor'}
-            className="w-full text-sm border border-gray-200 rounded-lg p-3 resize-none outline-none focus:border-blue-400 bg-white text-gray-800 leading-relaxed"
+            className="studio-scroll min-h-[300px] w-full flex-1 resize-none rounded-lg border border-white/10 bg-slate-900/60 p-4 text-sm leading-relaxed text-slate-100 outline-none transition-all focus:border-blue-400 focus:shadow-[0_0_0_3px_rgba(59,130,246,0.25)]"
           />
-          <p className="text-xs text-gray-400 mt-1">
-            Format: <code>1.</code> &nbsp;<code>1)</code> &nbsp;<code>-</code> &nbsp;<code>•</code> &nbsp;atau tanpa awalan
-          </p>
-        </div>
-
-        {/* Output */}
-        <div>
-          <div className="flex justify-between items-center mb-2">
-            <label className="text-xs text-gray-500">Hasil</label>
-            {copied && (
-              <span className="text-xs text-green-600 font-medium">Disalin</span>
-            )}
-          </div>
-          <div className="w-full text-sm border border-gray-200 rounded-lg p-3 bg-gray-50 min-h-[240px] leading-relaxed text-gray-800">
-            {lines.map((line, i) => (
-              <div key={i}>{line}</div>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {MODES.map((m) => (
+              <button
+                key={m.id}
+                onClick={() => setMode(m.id)}
+                aria-pressed={mode === m.id}
+                className={`rounded-full border px-3 py-1.5 text-xs transition-colors ${
+                  mode === m.id
+                    ? 'border-blue-500 bg-blue-600 text-white'
+                    : 'border-white/10 bg-white/5 text-slate-400 hover:bg-white/10 hover:text-slate-200'
+                }`}
+              >
+                {m.label}
+              </button>
             ))}
           </div>
+        </section>
+
+        {/* Hasil */}
+        <section className="flex min-h-0 flex-col rounded-xl border border-white/10 bg-white/5 p-4 backdrop-blur-xl">
+          <div className="mb-3 flex items-center justify-between">
+            <label className="text-xs font-medium uppercase tracking-wider text-slate-400">
+              Hasil
+            </label>
+            {copied && (
+              <span className="text-xs font-medium text-emerald-400">
+                Disalin ✓
+              </span>
+            )}
+          </div>
+          <div className="studio-scroll min-h-[300px] flex-1 overflow-y-auto rounded-lg border border-white/10 bg-slate-900/60 p-4 text-sm leading-relaxed text-slate-100">
+            {lines.length ? (
+              lines.map((line, i) => <div key={i}>{line}</div>)
+            ) : (
+              <p className="italic text-slate-600">Belum ada hasil…</p>
+            )}
+          </div>
           <button
+            ref={copyBtnRef}
             onClick={handleCopy}
-            className="mt-3 w-full py-2 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white text-sm rounded-lg transition-all"
+            disabled={!lines.length}
+            className="mt-3 w-full rounded-xl bg-gradient-to-r from-blue-500 to-blue-400 py-3 font-medium text-white shadow-[0_0_30px_rgba(59,130,246,0.4)] transition-all hover:from-blue-400 hover:to-blue-300 hover:shadow-[0_0_45px_rgba(59,130,246,0.6)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
           >
-            Salin → CorelDraw
+            Salin → CorelDraw{lines.length > 0 ? ` (${lines.length})` : ''}
           </button>
-        </div>
-      </div>
+        </section>
+      </main>
+
+      {/* ===== STATUS BAR ===== */}
+      <StatusBar message={pickMessage()} modeLabel={modeLabel} />
+
+      {/* ===== CONFETTI ===== */}
+      <Confetti burst={burst} from={copyFrom} />
     </div>
   )
 }
