@@ -45,9 +45,7 @@ src/
 ├── App.tsx
 ├── globals.css     ← pengaturan background di sini
 └── components/
-    ├── Formatter.tsx
-    ├── Pencil.tsx
-    └── StatusBar.tsx
+    └── Formatter.tsx
 public/
 └── images/         ← taruh gambar background di sini
 ```
