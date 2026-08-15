@@ -38,6 +38,15 @@ function stripPrefix(line: string): string {
   return line.replace(/^\s*(\d+[\.\)\-]|[-•*])\s*/, '').trim()
 }
 
+function formatLines(raw: string, mode: CaseMode): string[] {
+  return raw
+    .split('\n')
+    .map(stripPrefix)
+    .filter(Boolean)
+    .map(fixAddressTypos)
+    .map((l) => applyCase(l, mode))
+}
+
 function CheckIcon() {
   return (
     <svg
@@ -210,12 +219,7 @@ export default function Formatter() {
   const [copied, setCopied] = useState<boolean>(false)
   const [copyError, setCopyError] = useState<boolean>(false)
 
-  const lines: string[] = input
-    .split('\n')
-    .map(stripPrefix)
-    .filter(Boolean)
-    .map(fixAddressTypos)
-    .map((l) => applyCase(l, mode))
+  const lines: string[] = formatLines(input, mode)
 
   function handleInputChange(e: ChangeEvent<HTMLTextAreaElement>) {
     setInput(e.target.value)
@@ -237,62 +241,74 @@ export default function Formatter() {
   }
 
   return (
-    <div className="card-enter w-full max-w-3xl rounded-md border border-line bg-surface/70 p-6 shadow-[0_2px_12px_rgba(0,0,0,0.35)] backdrop-blur-md sm:p-8">
-      {/* ===== Toolbar atas ===== */}
-      <div className="mb-4 flex items-center justify-between">
-        <label
-          htmlFor="denah-input"
-          className="text-sm font-medium tracking-wide text-muted"
-        >
-          Input
-        </label>
-        <button
-          type="button"
-          onClick={() => setInput('')}
-          disabled={!input.trim()}
-          className="rounded-sm border-[1.5px] border-line-strong px-3 py-1.5 text-sm font-medium text-ink transition-colors enabled:hover:border-danger enabled:hover:bg-danger/10 enabled:hover:text-danger focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-surface disabled:cursor-not-allowed disabled:opacity-40"
-        >
-          Hapus
-        </button>
-      </div>
+    <div className="card-enter w-full max-w-5xl">
+      <div className="grid gap-6 md:grid-cols-2">
+        {/* ===== Kartu Input ===== */}
+        <section className="flex flex-col rounded-md border border-line bg-surface/70 p-6 shadow-[0_2px_12px_rgba(0,0,0,0.35)] backdrop-blur-md sm:p-8">
+          <div className="mb-4 flex items-center justify-between">
+            <label htmlFor="denah-input" className="text-sm font-medium tracking-wide text-muted">
+              Input
+            </label>
+            <button
+              type="button"
+              onClick={() => setInput('')}
+              disabled={!input.trim()}
+              className="rounded-sm border-[1.5px] border-line-strong px-3 py-1.5 text-sm font-medium text-ink transition-colors enabled:hover:border-danger enabled:hover:bg-danger/10 enabled:hover:text-danger focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-surface disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Hapus
+            </button>
+          </div>
+          <textarea
+            id="denah-input"
+            value={input}
+            onChange={handleInputChange}
+            placeholder="Tulis atau tempel daftar alamat di sini, satu per baris"
+            className="studio-scroll min-h-[320px] flex-1 w-full resize-none rounded-sm border border-line-strong bg-surface p-4 text-sm leading-relaxed text-ink outline-none transition-colors placeholder:text-slate-500 focus:border-brand focus:ring-2 focus:ring-brand focus:ring-offset-surface"
+          />
+        </section>
 
-      {/* ===== Area teks ===== */}
-      <textarea
-        id="denah-input"
-        value={input}
-        onChange={handleInputChange}
-        placeholder="Tulis atau tempel daftar alamat di sini, satu per baris"
-        className="studio-scroll min-h-[320px] w-full resize-none rounded-sm border border-line-strong bg-surface p-4 text-sm leading-relaxed text-ink outline-none transition-colors placeholder:text-slate-500 focus:border-brand focus:ring-2 focus:ring-brand focus:ring-offset-surface"
-      />
-
-      {/* ===== Toolbar bawah ===== */}
-      <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
-        <ModeDropdown value={mode} onChange={setMode} />
-
-        <button
-          type="button"
-          onClick={handleCopy}
-          disabled={!lines.length}
-          aria-live="polite"
-          className={`flex h-12 w-full items-center justify-center gap-2 whitespace-nowrap rounded-sm px-4 text-sm font-semibold text-white transition-[transform,box-shadow,background-color] duration-200 enabled:hover:scale-[1.03] enabled:hover:shadow-[0_2px_8px_rgba(0,0,0,0.25)] active:translate-y-[-1px] disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none sm:w-auto sm:flex-1 ${
-            copied
-              ? 'bg-success'
-              : copyError
-                ? 'bg-danger'
-                : 'bg-brand enabled:hover:bg-brand-dark'
-          }`}
-        >
-          {copied ? (
-            <>
-              <CheckIcon />
-              Disalin
-            </>
-          ) : copyError ? (
-            'Gagal nyalin'
-          ) : (
-            `Salin → CorelDraw${lines.length ? ` (${lines.length})` : ''}`
-          )}
-        </button>
+        {/* ===== Kartu Hasil ===== */}
+        <section className="flex flex-col rounded-md border border-line bg-surface/70 p-6 shadow-[0_2px_12px_rgba(0,0,0,0.35)] backdrop-blur-md sm:p-8">
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <span className="text-sm font-medium tracking-wide text-muted">Hasil</span>
+            <div className="w-full sm:w-auto sm:shrink-0">
+              <ModeDropdown value={mode} onChange={setMode} />
+            </div>
+          </div>
+          <textarea
+            id="denah-result"
+            readOnly
+            value={lines.join('\n')}
+            placeholder="Hasil format akan muncul di sini"
+            className="studio-scroll min-h-[320px] flex-1 w-full resize-none rounded-sm border border-line-strong bg-surface p-4 text-sm leading-relaxed text-ink outline-none transition-colors placeholder:text-slate-500 focus:border-brand focus:ring-2 focus:ring-brand focus:ring-offset-surface"
+          />
+          <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <button
+              type="button"
+              onClick={handleCopy}
+              disabled={!lines.length}
+              aria-live="polite"
+              className={`flex h-12 w-full items-center justify-center gap-2 whitespace-nowrap rounded-sm px-4 text-sm font-semibold text-white transition-[transform,box-shadow,background-color] duration-200 enabled:hover:scale-[1.03] enabled:hover:shadow-[0_2px_8px_rgba(0,0,0,0.25)] active:translate-y-[-1px] disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none ${
+                copied
+                  ? 'bg-success'
+                  : copyError
+                    ? 'bg-danger'
+                    : 'bg-brand enabled:hover:bg-brand-dark'
+              }`}
+            >
+              {copied ? (
+                <>
+                  <CheckIcon />
+                  Disalin
+                </>
+              ) : copyError ? (
+                'Gagal nyalin'
+              ) : (
+                `Salin → CorelDraw${lines.length ? ` (${lines.length})` : ''}`
+              )}
+            </button>
+          </div>
+        </section>
       </div>
     </div>
   )
