@@ -8,6 +8,7 @@ import {
 } from 'react'
 import { fixAddressTypos } from '@/lib/typoFix'
 import { formatListLine } from '@/lib/listFormat'
+import { toTitleCase } from '@/lib/caseTitle'
 
 type CaseMode = 'title' | 'upper' | 'lower' | 'none'
 
@@ -22,10 +23,6 @@ const MODES: ModeOption[] = [
   { id: 'lower', label: 'semua kecil' },
   { id: 'none',  label: 'Apa Adanya' },
 ]
-
-function toTitleCase(str: string): string {
-  return str.replace(/\S+/g, (w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
-}
 
 function applyCase(str: string, mode: CaseMode): string {
   switch (mode) {
