@@ -1,4 +1,10 @@
-import { useState, type ChangeEvent } from 'react'
+import {
+  useEffect,
+  useRef,
+  useState,
+  type ChangeEvent,
+  type KeyboardEvent as ReactKeyboardEvent,
+} from 'react'
 
 type CaseMode = 'title' | 'upper' | 'lower' | 'none'
 
@@ -49,8 +55,156 @@ function CheckIcon() {
   )
 }
 
+function ChevronDownIcon({ open }: { open: boolean }) {
+  return (
+    <svg
+      aria-hidden="true"
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={`shrink-0 text-slate-500 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+    >
+      <path d="m6 9 6 6 6-6" />
+    </svg>
+  )
+}
+
+function ModeDropdown({
+  value,
+  onChange,
+}: {
+  value: CaseMode
+  onChange: (mode: CaseMode) => void
+}) {
+  const [open, setOpen] = useState(false)
+  const [highlighted, setHighlighted] = useState<number>(() =>
+    MODES.findIndex((m) => m.id === value),
+  )
+  const containerRef = useRef<HTMLDivElement>(null)
+  const selectedIndex = MODES.findIndex((m) => m.id === value)
+
+  // Saat menu terbuka, sorotan keyboard kembali ke opsi yang dipilih
+  useEffect(() => {
+    if (open) setHighlighted(selectedIndex)
+  }, [open, selectedIndex])
+
+  // Tutup saat klik di luar
+  useEffect(() => {
+    if (!open) return
+    function onPointerDown(e: MouseEvent | TouchEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', onPointerDown)
+    document.addEventListener('touchstart', onPointerDown)
+    return () => {
+      document.removeEventListener('mousedown', onPointerDown)
+      document.removeEventListener('touchstart', onPointerDown)
+    }
+  }, [open])
+
+  // Escape menutup dari mana pun
+  useEffect(() => {
+    if (!open) return
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') setOpen(false)
+    }
+    document.addEventListener('keydown', onKeyDown)
+    return () => document.removeEventListener('keydown', onKeyDown)
+  }, [open])
+
+  function handleTriggerKeyDown(e: ReactKeyboardEvent<HTMLButtonElement>) {
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault()
+        if (!open) {
+          setHighlighted(selectedIndex)
+          setOpen(true)
+        } else {
+          setHighlighted((i) => (i + 1) % MODES.length)
+        }
+        break
+      case 'ArrowUp':
+        e.preventDefault()
+        if (!open) {
+          setHighlighted(selectedIndex)
+          setOpen(true)
+        } else {
+          setHighlighted((i) => (i - 1 + MODES.length) % MODES.length)
+        }
+        break
+      case 'Enter':
+      case ' ':
+        e.preventDefault()
+        if (open) {
+          onChange(MODES[highlighted].id)
+          setOpen(false)
+        } else {
+          setOpen(true)
+        }
+        break
+      case 'Escape':
+        setOpen(false)
+        break
+    }
+  }
+
+  return (
+    <div ref={containerRef} className="relative w-full sm:w-auto sm:shrink-0">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        onKeyDown={handleTriggerKeyDown}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-controls="mode-listbox"
+        aria-label="Mode huruf"
+        aria-activedescendant={open ? `mode-option-${MODES[highlighted].id}` : undefined}
+        className="flex h-12 w-full items-center justify-between gap-2 rounded-sm border border-line-strong bg-white px-3.5 text-sm text-ink outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand focus:ring-offset-2"
+      >
+        <span className="truncate">{MODES[selectedIndex].label}</span>
+        <ChevronDownIcon open={open} />
+      </button>
+
+      {open && (
+        <div
+          id="mode-listbox"
+          role="listbox"
+          className="absolute left-0 right-0 top-full z-20 mt-1 rounded-md border border-line bg-white p-1 shadow-[0_2px_12px_rgba(0,0,0,0.06)]"
+        >
+          {MODES.map((m, i) => (
+            <div
+              key={m.id}
+              id={`mode-option-${m.id}`}
+              role="option"
+              aria-selected={m.id === value}
+              onMouseEnter={() => setHighlighted(i)}
+              onClick={() => {
+                onChange(m.id)
+                setOpen(false)
+              }}
+              className={`flex cursor-pointer items-center justify-between gap-2 rounded-sm px-3 py-2 text-sm transition-colors hover:bg-brand/5 ${
+                i === highlighted ? 'bg-brand/5' : ''
+              } ${m.id === value ? 'font-medium text-brand' : 'text-ink'}`}
+            >
+              <span>{m.label}</span>
+              {m.id === value && <CheckIcon />}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function Formatter() {
-  const [input, setInput] = useState<string>('1.omah\n2.kampung\n3.jalan ati ajor')
+  const [input, setInput] = useState<string>('')
   const [mode, setMode] = useState<CaseMode>('title')
   const [copied, setCopied] = useState<boolean>(false)
   const [copyError, setCopyError] = useState<boolean>(false)
@@ -93,7 +247,8 @@ export default function Formatter() {
         <button
           type="button"
           onClick={() => setInput('')}
-          className="rounded-sm border-[1.5px] border-line-strong px-3 py-1.5 text-sm font-medium text-ink transition-colors hover:border-danger hover:bg-danger/5 hover:text-danger focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
+          disabled={!input.trim()}
+          className="rounded-sm border-[1.5px] border-line-strong px-3 py-1.5 text-sm font-medium text-ink transition-colors enabled:hover:border-danger enabled:hover:bg-danger/5 enabled:hover:text-danger focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40"
         >
           Hapus
         </button>
@@ -104,24 +259,13 @@ export default function Formatter() {
         id="denah-input"
         value={input}
         onChange={handleInputChange}
-        placeholder={'1.omah\n2.kampung\n3.jalan ati ajor'}
+        placeholder="Tulis atau tempel daftar alamat di sini, satu per baris"
         className="studio-scroll min-h-[320px] w-full resize-none rounded-sm border border-line-strong bg-white p-4 text-sm leading-relaxed text-ink outline-none transition-colors placeholder:text-slate-400 focus:border-brand focus:ring-2 focus:ring-brand focus:ring-offset-2"
       />
 
       {/* ===== Toolbar bawah ===== */}
       <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
-        <select
-          aria-label="Mode huruf"
-          value={mode}
-          onChange={(e) => setMode(e.target.value as CaseMode)}
-          className="h-12 w-full cursor-pointer rounded-sm border border-line-strong bg-white px-3.5 text-sm text-ink outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand focus:ring-offset-2 sm:w-auto sm:shrink-0"
-        >
-          {MODES.map((m) => (
-            <option key={m.id} value={m.id} className="bg-white text-ink">
-              {m.label}
-            </option>
-          ))}
-        </select>
+        <ModeDropdown value={mode} onChange={setMode} />
 
         <button
           type="button"
