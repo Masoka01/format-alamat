@@ -2,8 +2,8 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Denah Formatter',
-  description: 'Formatter alamat denah untuk CorelDraw',
+  title: 'Studio Denah — Formatter Alamat CorelDraw',
+  description: 'Formatter alamat denah untuk CorelDraw. Paste teks, rapi otomatis, salin langsung.',
 }
 
 export default function RootLayout({
