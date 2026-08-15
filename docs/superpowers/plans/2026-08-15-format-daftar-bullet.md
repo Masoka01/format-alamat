@@ -215,8 +215,9 @@ const GELAR_TANPA_TITIK: Record<string, string> = {
 }
 
 function bagianGelar(b: string): string {
-  if (b === 'ip') return 'IP'
-  if (b === 'mba') return 'MBA'
+  const k = b.toLowerCase()
+  if (k === 'ip') return 'IP'
+  if (k === 'mba') return 'MBA'
   return b.charAt(0).toUpperCase() + b.slice(1).toLowerCase()
 }
 
@@ -256,7 +257,7 @@ export function toTitleCase(str: string): string {
 }
 ```
 
-**Step 1 — test** (sebelum modul dibuat: `ERR_MODULE_NOT_FOUND`; sesudah: `SEMUA PASS (29 kasus)`, exit 0):
+**Step 1 — test** (sebelum modul dibuat: `ERR_MODULE_NOT_FOUND`; sesudah: `SEMUA PASS (30 kasus)`, exit 0):
 
 ```bash
 node --experimental-strip-types --input-type=module -e "
