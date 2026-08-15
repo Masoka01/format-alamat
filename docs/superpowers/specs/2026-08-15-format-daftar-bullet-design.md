@@ -5,14 +5,14 @@ Status: Disetujui (design review, user)
 
 ## Tujuan
 
-Menghasilkan daftar ber-bullet dan penataan spasi titik/koma secara otomatis untuk semua input, tanpa pemicu/toggle. Daftar di bawah judul "Turut mengundang" → bullet `• `; daftar lain (alamat, dsb.) → bullet `- ` (keputusan user 15-08-2026).
+Menghasilkan daftar ber-bullet dan penataan spasi titik/koma secara otomatis untuk semua input, tanpa pemicu/toggle. Daftar di bawah judul "Turut mengundang" → bullet `• `; daftar lain (alamat, dsb.) → polosan tanpa bullet/nomor (keputusan user 15-08-2026).
 
 ## Perilaku
 
 Pipeline level daftar: `formatList(lines)` — menjalankan `formatListLine` per baris dengan state section "Turut mengundang" (lihat "Deteksi section"):
 
 1. **Buang karakter tak terlihat** — regex `[\u200B-\u200F\u202A-\u202E\u2060-\u2064\uFEFF]` (artefak salin WhatsApp/Telegram, mis. WORD JOINER U+2060). Ini memindahkan fix bug 2026-08-15 ke dalam modul.
-2. **Bulletize** — baris ber-awalan daftar `N.` / `N)` / `N-` / `•` / `-` / `*` (regex `^\s*(\d+[.)-]|[-•*])\s*`) → diganti `- `, kecuali sedang dalam section "Turut mengundang" → diganti `• `.
+2. **Bulletize** — baris ber-awalan daftar `N.` / `N)` / `N-` / `•` / `-` / `*` (regex `^\s*(\d+[.)-]|[-•*])\s*`) → awalan dihapus (polosan), kecuali sedang dalam section "Turut mengundang" → diganti `• `.
    - Baris tanpa awalan (judul seperti "Turut mengundang mempelai wanita") → tidak berubah, tanpa bullet.
 3. **Spasi titik/koma** (aturan detail di bawah).
 4. **Trim**.
@@ -25,11 +25,11 @@ Pipeline lintas-baris dengan state `sectionTurutUndang` (awal: mati), berlaku pe
 
 1. Baris yang mengandung kata `turut mengundang` (case-insensitive, pola `\bturut mengundang\b`) → baris judul: tetap tanpa bullet, state diaktifkan.
 2. Baris ber-awalan daftar saat state aktif → diganti `• ` (mis. `1. Keluarga Besar Alm. Bpk H. Ropa'i` → `• Keluarga Besar Alm. Bpk H. Ropa'i`).
-3. Baris ber-awalan daftar saat state mati → diganti `- ` (alamat, dsb.).
+3. Baris ber-awalan daftar saat state mati → awalan dihapus (polosan, alamat dsb.).
 4. Baris polos lain (berisi teks, tanpa awalan daftar, bukan judul turut-mengundang) → state dimatikan.
 5. Baris kosong (atau hanya spasi) → tidak mengubah state; baris kosong tetap difilter di Formatter.
 
-Contoh: daftar nama di bawah "Turut mengundang mempelai wanita/pria" → `• `; daftar alamat (tanpa judul tersebut) → `- `; jika dalam satu input ada bagian undangan lalu bagian alamat, baris polos pemisah menutup mode; baris kosong di tengah section tidak mengubah mode.
+Contoh: daftar nama di bawah "Turut mengundang mempelai wanita/pria" → `• `; daftar alamat (tanpa judul tersebut) → polosan tanpa bullet; jika dalam satu input ada bagian undangan lalu bagian alamat, baris polos pemisah menutup mode; baris kosong di tengah section tidak mengubah mode.
 
 ### Aturan spasi titik
 
@@ -111,13 +111,13 @@ Turut mengundang mempelai pria
 ```
 
 Regression:
-- Alamat: `1. omah kampung` → `- Omah Kampung`; `Jl.Raya Sudirman No.5` → `Jalan. Raya Sudirman No. 5` (typo fixer lama mengubah `Jl` → `Jalan`, perilaku disetujui; spasi titik tetap berlaku); `Komp. Permata Indah RT.01/RW.02` → `Komp. Permata Indah RT. 01/RW. 02`
+- Alamat: `1. omah kampung` → `Omah Kampung`; `Jl.Raya Sudirman No.5` → `Jalan. Raya Sudirman No. 5` (typo fixer lama mengubah `Jl` → `Jalan`, perilaku disetujui; spasi titik tetap berlaku); `Komp. Permata Indah RT.01/RW.02` → `Komp. Permata Indah RT. 01/RW. 02`
 - Casing Title: `rt. 01/rw. 02` → `RT. 01/RW. 02`; `(rw)` → `(RW)`; `spd` → `S.Pd`; `s.ip` → `S.IP`; `s.pd.` → `S.Pd.`; `(camat cidahu)` → `(Camat Cidahu)`; `JALAN` → `Jalan`
 - WORD JOINER U+2060 tetap terbuang (pindah ke modul)
-- Typo tetap berfungsi (`1. JLN merdeka` → `- Jalan Merdeka`)
+- Typo tetap berfungsi (`1. JLN merdeka` → `Jalan Merdeka`)
 - Section turut mengundang: judul `Turut mengundang mempelai wanita` + `1. Keluarga Besar Alm. Bpk H. Ropa'i` → judul tanpa bullet, `• Keluarga Besar Alm. Bpk H. Ropa'i`; `1. Kamaludin (RT)` → `• Kamaludin (RT)`
-- Baris polos menutup mode: `Turut mengundang mempelai wanita` → daftar → `Alamat` (baris polos) → `1. Jl.Raya Sudirman` → `- Jalan. Raya Sudirman`
+- Baris polos menutup mode: `Turut mengundang mempelai wanita` → daftar → `Alamat` (baris polos) → `1. Jl.Raya Sudirman` → `Jalan. Raya Sudirman`
 - Baris kosong di dalam section tidak mengubah mode: `Turut mengundang mempelai wanita` → `1. Asep Saepul Jamal` → (baris kosong) → `1. Kamaludin (RT)` → `• Kamaludin (RT)`
-- Alamat tanpa judul turut-mengundang → tetap `- ` (kasus `1. omah kampung` di atas)
+- Alamat tanpa judul turut-mengundang → polosan tanpa bullet (kasus `1. omah kampung` di atas)
 - Mode upper/lower/none tetap berfungsi
 - `npx tsc -b --force` exit 0, `npm run build` PASS, cek live di browser (0 console error)

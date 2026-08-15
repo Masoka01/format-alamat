@@ -57,7 +57,8 @@ export function formatList(lines: string[]): string[] {
       return polos
     }
     if (AWALAN_DAFTAR.test(polos)) {
-      return formatListLine(polos, sectionTurutUndang ? '• ' : '- ')
+      // Undangan → '• '. Alamat (non-undangan) → polosan tanpa bullet/nomor (keputusan user 15-08-2026).
+      return formatListLine(polos, sectionTurutUndang ? '• ' : '')
     }
     if (polos !== '') sectionTurutUndang = false
     return polos
