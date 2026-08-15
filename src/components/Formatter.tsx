@@ -3,6 +3,7 @@ import {
   useRef,
   useState,
   type ChangeEvent,
+  type ClipboardEvent as ReactClipboardEvent,
   type KeyboardEvent as ReactKeyboardEvent,
 } from 'react'
 import { fixAddressTypos } from '@/lib/typoFix'
@@ -240,6 +241,26 @@ export default function Formatter() {
       })
   }
 
+  function handlePaste(e: ReactClipboardEvent<HTMLTextAreaElement>) {
+    const text = e.clipboardData.getData('text')
+    const start = e.currentTarget.selectionStart ?? 0
+    const end = e.currentTarget.selectionEnd ?? start
+    const merged = input.slice(0, start) + text + input.slice(end)
+    const fullLines = formatLines(merged, mode)
+    if (!fullLines.length) return
+    navigator.clipboard
+      .writeText(fullLines.join('\n'))
+      .then(() => {
+        setCopied(true)
+        setCopyError(false)
+        window.setTimeout(() => setCopied(false), 2000)
+      })
+      .catch(() => {
+        setCopyError(true)
+        window.setTimeout(() => setCopyError(false), 2000)
+      })
+  }
+
   return (
     <div className="card-enter w-full max-w-5xl">
       <div className="grid gap-6 md:grid-cols-2">
@@ -262,6 +283,7 @@ export default function Formatter() {
             id="denah-input"
             value={input}
             onChange={handleInputChange}
+            onPaste={handlePaste}
             placeholder="Tulis atau tempel daftar alamat di sini, satu per baris"
             className="studio-scroll min-h-[320px] flex-1 w-full resize-none rounded-sm border border-line-strong bg-surface p-4 text-sm leading-relaxed text-ink outline-none transition-colors placeholder:text-slate-500 focus:border-brand focus:ring-2 focus:ring-brand focus:ring-offset-surface"
           />
