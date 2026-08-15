@@ -1,0 +1,5 @@
+Taruh file gambar background di folder ini.
+Contoh: background.jpg, bg.png, foto.webp
+
+Lalu ubah variabel --bg-image di src/app/globals.css:
+  --bg-image: url('/images/nama-file.jpg');

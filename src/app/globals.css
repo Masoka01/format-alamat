@@ -1,0 +1,58 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* =============================================
+   PENGATURAN BACKGROUND IMAGE
+   Ubah nilai di sini untuk ganti background.
+   Taruh file gambar di /public/images/
+   ============================================= */
+
+:root {
+  /* Path gambar (taruh file di /public/images/) */
+  --bg-image: url('/images/background.jpg');
+
+  /* Ukuran: cover | contain | auto | 100% */
+  --bg-size: cover;
+
+  /* Posisi: center | top | bottom | left | right */
+  --bg-position: center center;
+
+  /* Repeat: no-repeat | repeat | repeat-x | repeat-y */
+  --bg-repeat: no-repeat;
+
+  /* Attachment: fixed (parallax) | scroll (ikut scroll) */
+  --bg-attachment: fixed;
+
+  /* Kecerahan overlay gelap di atas gambar (0.0 - 1.0) */
+  --bg-overlay-opacity: 0.45;
+
+  /* Warna overlay dalam format: R G B (tanpa koma) */
+  --bg-overlay-color: 0 0 0;
+}
+
+/* Background utama */
+.bg-main {
+  background-image: var(--bg-image);
+  background-size: var(--bg-size);
+  background-position: var(--bg-position);
+  background-repeat: var(--bg-repeat);
+  background-attachment: var(--bg-attachment);
+  background-color: #1a1a2e; /* fallback kalau gambar belum ada */
+}
+
+/* Overlay gelap di atas background */
+.bg-overlay::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-color: rgb(var(--bg-overlay-color) / var(--bg-overlay-opacity));
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Konten selalu tampil di atas overlay */
+.above-overlay {
+  position: relative;
+  z-index: 1;
+}
