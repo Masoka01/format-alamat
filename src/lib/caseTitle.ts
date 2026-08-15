@@ -10,6 +10,21 @@ const GELAR_TANPA_TITIK: Record<string, string> = {
   msc: 'M.Sc',
   phd: 'Ph.D',
   mba: 'MBA',
+  se: 'S.E',
+  st: 'S.T',
+  mm: 'M.M',
+  msi: 'M.Si',
+  mpd: 'M.Pd',
+  mag: 'M.Ag',
+  sag: 'S.Ag',
+  sh: 'S.H',
+  shi: 'S.H.I',
+  sthi: 'S.Th.I',
+  mkom: 'M.Kom',
+  mt: 'M.T',
+  ma: 'M.A',
+  drs: 'Drs.',
+  dra: 'Dra.',
 }
 
 function bagianGelar(b: string): string {
@@ -20,18 +35,28 @@ function bagianGelar(b: string): string {
 
 function normalisasiToken(w: string): string {
   const imbuhanAwal = w.match(/^[^A-Za-z]*/)?.[0] ?? ''
-  const imbuhanAkhir = w.match(/[^A-Za-z]*$/)?.[0] ?? ''
+  // Digit bukan imbuahan: dipertahankan di inti agar RT/RW+angka (RT01/RW02) terbaca utuh.
+  const imbuhanAkhir = w.match(/[^A-Za-z0-9]*$/)?.[0] ?? ''
   const inti = w.slice(imbuhanAwal.length, imbuhanAkhir ? w.length - imbuhanAkhir.length : w.length)
 
-  // 1) RT/RW (dengan atau tanpa titik)
-  if (/^(rt|rw)\.?$/i.test(inti)) {
-    return imbuhanAwal + inti.toUpperCase() + imbuhanAkhir
+  // 1) RT/RW (dengan/tanpa titik, dengan/tanpa angka, bisa bergandengan via '/')
+  //    angka nempel diberi spasi agar konsisten dengan bentuk bertitik: RT01 → RT 01
+  if (/^(rt|rw)\.?\d*(\/(rt|rw)\.?\d*)*$/i.test(inti)) {
+    const rapi = inti.replace(
+      /(rt|rw)(\.?)(\d*)/gi,
+      (_m, huruf: string, titik: string, angka: string) =>
+        `${huruf.toUpperCase()}${titik}${angka ? ` ${angka}` : ''}`,
+    )
+    return imbuhanAwal + rapi + imbuhanAkhir
   }
 
   // 2) gelar tanpa titik
   const kunci = inti.toLowerCase()
   if (Object.hasOwn(GELAR_TANPA_TITIK, kunci)) {
-    return imbuhanAwal + GELAR_TANPA_TITIK[kunci] + imbuhanAkhir
+    const baku = GELAR_TANPA_TITIK[kunci]
+    // Hindari titik dobel: "Drs." (raw bertitik) → inti "Drs" + akhiran "." → "Drs."
+    const akhiran = baku.endsWith('.') ? imbuhanAkhir.replace(/^\./, '') : imbuhanAkhir
+    return imbuhanAwal + baku + akhiran
   }
 
   // 3) gelar bertitik: pola huruf.titik.huruf → bentuk baku

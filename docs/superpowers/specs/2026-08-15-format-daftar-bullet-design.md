@@ -69,8 +69,8 @@ Koma yang diikuti digit (koma desimal, `1,5`) → tidak berubah.
 
 Mode "Huruf Depan Kapital" (`toTitleCase`) diperbaiki agar singkatan dan gelar mengikuti bentuk baku, tanpa mengubah penanganan kata biasa:
 
-- **RT/RW**: token `rt`/`rw` dengan atau tanpa titik (`rt.`, `(rw)`, `01/rw.`) → `RT`/`RW`. Contoh: `rt.01/rw.02` → `RT. 01/RW. 02` (spasi dari `formatListLine`), `(rw)` → `(RW)`.
-- **Gelar akademik tanpa titik** → bentuk baku: `spd` → `S.Pd`, `sip` → `S.IP`, `skom` → `S.Kom`, `ssi` → `S.Si`, `msc` → `M.Sc`, `phd` → `Ph.D`, `mba` → `MBA`.
+- **RT/RW**: token `rt`/`rw` dengan atau tanpa titik, boleh berangka nempel dan bergandengan via `/` (`rt.`, `(rw)`, `01/rw.`, `RT01/RW02`, `(rt01/rw02)`) → `RT`/`RW`; angka nempel diberi spasi agar konsisten dengan bentuk bertitik: `RT01/RW02` → `RT 01/RW 02`, `(rt01)` → `(RT 01)`, `rt.01` → `RT. 01`, `01/rw.` → `01/RW.`. (Fix 15-08-2026: digit bukan imbuahan — sebelumnya `RT01/RW02` → `Rt01/rw02`.)
+- **Gelar akademik tanpa titik** → bentuk baku: `spd` → `S.Pd`, `sip` → `S.IP`, `skom` → `S.Kom`, `ssi` → `S.Si`, `msc` → `M.Sc`, `phd` → `Ph.D`, `mba` → `MBA`, `se` → `S.E`, `st` → `S.T`, `mm` → `M.M`, `msi` → `M.Si`, `mpd` → `M.Pd`, `mag` → `M.Ag`, `sag` → `S.Ag`, `sh` → `S.H`, `shi` → `S.H.I`, `sthi` → `S.Th.I`, `mkom` → `M.Kom`, `mt` → `M.T`, `ma` → `M.A`, `drs` → `Drs.`, `dra` → `Dra.` (Fix 15-08-2026: daftar diperluas — sebelumnya `SE` → `Se`, `MM` → `Mm`.)
 - **Gelar bertitik** (pola `huruf.huruf…`, tiap bagian 1–5 huruf): bagian pertama kapital-awal, bagian berikutnya kapital-awal, kecuali `ip` → `IP` dan `mba` → `MBA`. Contoh: `s.pd` → `S.Pd`, `s.pd.` → `S.Pd.`, `s.ip` → `S.IP`, `ph.d` → `Ph.D`, `m.sc` → `M.Sc`, `s.kom` → `S.Kom`, `a.md` → `A.Md`.
 - **Kata biasa** → huruf pertama kapital, sisanya kecil (seperti sebelumnya): `omah` → `Omah`, `JALAN` → `Jalan`, `(camat cidahu)` → `(Camat Cidahu)`.
 - Singkatan satu bagian dengan titik akhir (`Alm.`, `Bpk.`, `H.`, `Ust.`, `Komp.`, `No.`) → kapital-awal seperti sebelumnya: `alm.` → `Alm.`.
