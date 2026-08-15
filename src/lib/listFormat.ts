@@ -11,6 +11,7 @@ const AKHIRAN_GELAR_AKADEMIK = new Set([
 
 const KARAKTER_TAK_TERLIHAT = /[\u200B-\u200F\u202A-\u202E\u2060-\u2064\uFEFF]/g
 const AWALAN_DAFTAR = /^\s*(\d+[.)-]|[-•*])\s*/
+const HEADER_TURUT_UNDANG = /\bturut mengundang\b/i
 
 /** Kata terpanjang sebelum titik (gelar sapaan) → selalu diberi spasi. */
 function kataSebelumTitik(baris: string, i: number): string {
@@ -27,11 +28,11 @@ function adalahGelarAkademik(baris: string, i: number): boolean {
   return AKHIRAN_GELAR_AKADEMIK.has(cocok[0].toLowerCase())
 }
 
-/** Normalisasi satu baris daftar: bullet, spasi titik/koma, bersih dari karakter tak terlihat. */
-export function formatListLine(line: string): string {
+/** Normalisasi satu baris daftar: bullet (default '- '), spasi titik/koma, bersih dari karakter tak terlihat. */
+export function formatListLine(line: string, bullet: string = '- '): string {
   const bersih = line
     .replace(KARAKTER_TAK_TERLIHAT, '')
-    .replace(AWALAN_DAFTAR, '- ')
+    .replace(AWALAN_DAFTAR, bullet)
   let hasil = ''
   for (let i = 0; i < bersih.length; i++) {
     const ch = bersih[i]
@@ -44,4 +45,21 @@ export function formatListLine(line: string): string {
     if (ch === ',' || !adalahGelarAkademik(bersih, i)) hasil += ' '
   }
   return hasil.trim()
+}
+
+/** Normalisasi seluruh baris: deteksi section "Turut mengundang" → bullet '• '. */
+export function formatList(lines: string[]): string[] {
+  let sectionTurutUndang = false
+  return lines.map((line) => {
+    const polos = line.replace(KARAKTER_TAK_TERLIHAT, '').trim()
+    if (HEADER_TURUT_UNDANG.test(polos)) {
+      sectionTurutUndang = true
+      return polos
+    }
+    if (AWALAN_DAFTAR.test(polos)) {
+      return formatListLine(polos, sectionTurutUndang ? '• ' : '- ')
+    }
+    if (polos !== '') sectionTurutUndang = false
+    return polos
+  })
 }
