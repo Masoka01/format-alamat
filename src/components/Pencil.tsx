@@ -1,5 +1,3 @@
-'use client'
-
 import { useRef } from 'react'
 
 export type Mood = 'idle' | 'typing' | 'happy' | 'sad'

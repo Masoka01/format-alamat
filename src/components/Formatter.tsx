@@ -1,5 +1,3 @@
-'use client'
-
 import { useEffect, useRef, useState, type ChangeEvent } from 'react'
 import Pencil, { type Mood } from './Pencil'
 import StatusBar from './StatusBar'
