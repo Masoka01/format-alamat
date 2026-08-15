@@ -126,6 +126,7 @@ export default function Formatter() {
       })
       .catch(() => {
         setCopyError(true)
+        window.setTimeout(() => setCopyError(false), 2000)
         setMoodTemporarily('sad', 2000)
       })
   }
