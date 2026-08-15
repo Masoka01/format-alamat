@@ -5,19 +5,30 @@ Status: Disetujui (design review, user)
 
 ## Tujuan
 
-Menghasilkan daftar ber-bullet `- ` dan penataan spasi titik/koma secara otomatis untuk semua input, tanpa pemicu/toggle. Berlaku untuk daftar undangan ("Turut mengundang") maupun daftar alamat — keputusan user: semua daftar bernomor jadi bullet.
+Menghasilkan daftar ber-bullet dan penataan spasi titik/koma secara otomatis untuk semua input, tanpa pemicu/toggle. Daftar di bawah judul "Turut mengundang" → bullet `• `; daftar lain (alamat, dsb.) → bullet `- ` (keputusan user 15-08-2026).
 
 ## Perilaku
 
-Pipeline per baris: `formatListLine(line)`:
+Pipeline level daftar: `formatList(lines)` — menjalankan `formatListLine` per baris dengan state section "Turut mengundang" (lihat "Deteksi section"):
 
 1. **Buang karakter tak terlihat** — regex `[\u200B-\u200F\u202A-\u202E\u2060-\u2064\uFEFF]` (artefak salin WhatsApp/Telegram, mis. WORD JOINER U+2060). Ini memindahkan fix bug 2026-08-15 ke dalam modul.
-2. **Bulletize** — baris ber-awalan daftar `N.` / `N)` / `N-` / `•` / `-` / `*` (regex `^\s*(\d+[.)-]|[-•*])\s*`) → diganti `- `.
+2. **Bulletize** — baris ber-awalan daftar `N.` / `N)` / `N-` / `•` / `-` / `*` (regex `^\s*(\d+[.)-]|[-•*])\s*`) → diganti `- `, kecuali sedang dalam section "Turut mengundang" → diganti `• `.
    - Baris tanpa awalan (judul seperti "Turut mengundang mempelai wanita") → tidak berubah, tanpa bullet.
 3. **Spasi titik/koma** (aturan detail di bawah).
 4. **Trim**.
 
-Setelah `formatListLine`, pipeline berlanjut seperti biasa: `filter(Boolean)` → `fixAddressTypos` → `applyCase(mode)`.
+Setelah `formatList`, pipeline berlanjut seperti biasa: `filter(Boolean)` → `fixAddressTypos` → `applyCase(mode)`.
+
+### Deteksi section "Turut mengundang" (keputusan user 15-08-2026)
+
+Pipeline lintas-baris dengan state `sectionTurutUndang` (awal: mati), berlaku per pemanggilan format (satu input/paste):
+
+1. Baris yang mengandung kata `turut mengundang` (case-insensitive, pola `\bturut mengundang\b`) → baris judul: tetap tanpa bullet, state diaktifkan.
+2. Baris ber-awalan daftar saat state aktif → diganti `• ` (mis. `1. Keluarga Besar Alm. Bpk H. Ropa'i` → `• Keluarga Besar Alm. Bpk H. Ropa'i`).
+3. Baris ber-awalan daftar saat state mati → diganti `- ` (alamat, dsb.).
+4. Baris polos lain (tanpa awalan daftar, bukan judul turut-mengundang) → state dimatikan.
+
+Contoh: daftar nama di bawah "Turut mengundang mempelai wanita/pria" → `• `; daftar alamat (tanpa judul tersebut) → `- `; jika dalam satu input ada bagian undangan lalu bagian alamat, baris polos pemisah menutup mode.
 
 ### Aturan spasi titik
 
@@ -67,35 +78,35 @@ Mode "Huruf Depan Kapital" (`toTitleCase`) diperbaiki agar singkatan dan gelar m
 
 ## Arsitektur
 
-- **Baru**: `src/lib/listFormat.ts` — ekspor `formatListLine(line: string): string` (langkah 1–4 di atas), plus konstanta `GELAR_SAPAAN` dan `AKHIRAN_GELAR_AKADEMIK`.
+- **Baru**: `src/lib/listFormat.ts` — ekspor `formatList(lines: string[]): string[]` (state section "Turut mengundang" lintas-baris + langkah 1–4 per baris) dan `formatListLine(line: string): string` (per baris, dipakai test), plus konstanta `GELAR_SAPAAN` dan `AKHIRAN_GELAR_AKADEMIK`.
 - **Baru**: `src/lib/caseTitle.ts` — ekspor `toTitleCase(str: string): string` (normalisasi casing mode Title, keputusan 15-08-2026).
-- **Ubah**: `src/components/Formatter.tsx` — hapus `stripPrefix` dan `toTitleCase` lokal, `formatLines` memakai `formatListLine`, `applyCase` memakai `toTitleCase` dari `caseTitle.ts`. Tidak ada perubahan lain.
+- **Ubah**: `src/components/Formatter.tsx` — hapus `stripPrefix` dan `toTitleCase` lokal, `formatLines` memakai `formatList` (menggantikan `.map(formatListLine)`), `applyCase` memakai `toTitleCase` dari `caseTitle.ts`. Tidak ada perubahan lain.
 - Modul murni (tanpa React), mengikuti pola `src/lib/typoFix.ts`.
 
 ## Verifikasi
 
-Kriteria penerimaan (data undangan 14 baris):
+Kriteria penerimaan (data undangan 18 baris):
 
 ```
 Turut mengundang mempelai wanita
-- Keluarga Besar Alm. Bpk H. Ropa'i
-- Keluarga Besar Alm. Bpk H. Hamdani
-- Asep Saepul Jamal (Kakak)
-- Muhammad Krisna (Kakak)
-- Bpk H. Tamtam Alamsyah, S.IP (Camat Cidahu)
-- Bpk. Opik (Kepala Desa Jayabakti)
-- H. Mahpud
-- H. Basit
-- H. Puadudin
-- Ust. Hasan
-- Ust. Ejang Syaripudin
-- H. Wandi (RW)
-- Kamaludin (RT)
+• Keluarga Besar Alm. Bpk H. Ropa'i
+• Keluarga Besar Alm. Bpk H. Hamdani
+• Asep Saepul Jamal (Kakak)
+• Muhammad Krisna (Kakak)
+• Bpk H. Tamtam Alamsyah, S.IP (Camat Cidahu)
+• Bpk. Opik (Kepala Desa Jayabakti)
+• H. Mahpud
+• H. Basit
+• H. Puadudin
+• Ust. Hasan
+• Ust. Ejang Syaripudin
+• H. Wandi (RW)
+• Kamaludin (RT)
 
 Turut mengundang mempelai pria
-- Keluarga Besar Ema Atikah
-- H. Hasanudin S.Pd
-- Ust. Moch Sabil Arsyad
+• Keluarga Besar Ema Atikah
+• H. Hasanudin S.Pd
+• Ust. Moch Sabil Arsyad
 ```
 
 Regression:
@@ -103,5 +114,8 @@ Regression:
 - Casing Title: `rt. 01/rw. 02` → `RT. 01/RW. 02`; `(rw)` → `(RW)`; `spd` → `S.Pd`; `s.ip` → `S.IP`; `s.pd.` → `S.Pd.`; `(camat cidahu)` → `(Camat Cidahu)`; `JALAN` → `Jalan`
 - WORD JOINER U+2060 tetap terbuang (pindah ke modul)
 - Typo tetap berfungsi (`1. JLN merdeka` → `- Jalan Merdeka`)
+- Section turut mengundang: judul `Turut mengundang mempelai wanita` + `1. Keluarga Besar Alm. Bpk H. Ropa'i` → judul tanpa bullet, `• Keluarga Besar Alm. Bpk H. Ropa'i`; `1. Kamaludin (RT)` → `• Kamaludin (RT)`
+- Baris polos menutup mode: `Turut mengundang mempelai wanita` → daftar → `Alamat` (baris polos) → `1. Jl.Raya Sudirman` → `- Jalan. Raya Sudirman`
+- Alamat tanpa judul turut-mengundang → tetap `- ` (kasus `1. omah kampung` di atas)
 - Mode upper/lower/none tetap berfungsi
 - `npx tsc -b --force` exit 0, `npm run build` PASS, cek live di browser (0 console error)
