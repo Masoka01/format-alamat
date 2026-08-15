@@ -86,6 +86,17 @@ export default function Formatter() {
     return () => window.clearInterval(t)
   }, [])
 
+  // Kosong → pensil layu (spesifikasi Bagian 3): timpa timer mood yang pending
+  useEffect(() => {
+    if (!input.trim()) {
+      if (moodTimer.current !== null) {
+        window.clearTimeout(moodTimer.current)
+        moodTimer.current = null
+      }
+      setMood('sad')
+    }
+  }, [input])
+
   function setMoodTemporarily(next: Mood, ms: number) {
     setMood(next)
     if (moodTimer.current !== null) window.clearTimeout(moodTimer.current)
@@ -136,7 +147,7 @@ export default function Formatter() {
   }
 
   return (
-    <div className={`studio-card flex h-full flex-col gap-6 ${rainbow ? 'rainbow' : ''}`}>
+    <div className={`studio-card flex min-h-full flex-col gap-6 ${rainbow ? 'rainbow' : ''}`}>
       {/* ===== HEADER ===== */}
       <header className="flex h-14 shrink-0 items-center justify-between rounded-xl border border-white/10 bg-white/5 px-5 backdrop-blur-xl">
         <div className="flex items-center gap-3">
