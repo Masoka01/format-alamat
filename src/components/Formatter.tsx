@@ -7,6 +7,7 @@ import {
   type KeyboardEvent as ReactKeyboardEvent,
 } from 'react'
 import { fixAddressTypos } from '@/lib/typoFix'
+import { formatListLine } from '@/lib/listFormat'
 
 type CaseMode = 'title' | 'upper' | 'lower' | 'none'
 
@@ -35,19 +36,10 @@ function applyCase(str: string, mode: CaseMode): string {
   }
 }
 
-function stripPrefix(line: string): string {
-  return line
-    .replace(/^\s*(\d+[\.\)\-]|[-•*])\s*/, '')
-    // Buang karakter tak terlihat (artefak salin dari WhatsApp/Telegram, mis. WORD JOINER U+2060)
-    // yang membuat huruf pertama turun ke huruf kecil di toTitleCase dan ikut tersalin ke CorelDraw
-    .replace(/[\u200B-\u200F\u202A-\u202E\u2060-\u2064\uFEFF]/g, '')
-    .trim()
-}
-
 function formatLines(raw: string, mode: CaseMode): string[] {
   return raw
     .split('\n')
-    .map(stripPrefix)
+    .map(formatListLine)
     .filter(Boolean)
     .map(fixAddressTypos)
     .map((l) => applyCase(l, mode))
