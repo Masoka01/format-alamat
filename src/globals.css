@@ -3,18 +3,65 @@
 @tailwind utilities;
 
 :root {
-  color-scheme: light;
+  /* Foto background — taruh file di /public/images/ */
+  --bg-image: url('/images/cok.webp');
+
+  /* Warna veil dalam format R G B (tanpa koma) */
+  --bg-overlay-color: 17 19 24;
+
+  /* Kekuatan veil (0.0 - 1.0) */
+  --bg-overlay-opacity: 0.72;
+
+  color-scheme: dark;
 }
 
 html,
 body {
-  background-color: #f8f9fa; /* neutral */
-  color: #343a40; /* secondary/dark — no pure black */
+  background-color: #212529; /* fallback gelap di belakang foto */
+  color: #e9ecef;
   font-family: 'Lato', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   font-size: 16px;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* ---- Background foto ---- */
+.bg-main {
+  background-image: var(--bg-image);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-color: #212529;
+}
+
+/* Mobile: attachment fixed bermasalah di iOS → pakai scroll biasa */
+@media (max-width: 768px) {
+  .bg-main {
+    background-attachment: scroll;
+  }
+}
+
+/* Veil gelap di atas foto (gradasi halus, sedikit lebih gelap ke bawah) */
+.bg-overlay::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgb(var(--bg-overlay-color) / calc(var(--bg-overlay-opacity) - 0.06)) 0%,
+    rgb(var(--bg-overlay-color) / var(--bg-overlay-opacity)) 55%,
+    rgb(var(--bg-overlay-color) / calc(var(--bg-overlay-opacity) + 0.1)) 100%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Konten selalu tampil di atas veil */
+.above-overlay {
+  position: relative;
+  z-index: 1;
 }
 
 /* ---- Entri kartu: fade + naik halus (480ms, ease-out) ---- */
@@ -27,13 +74,13 @@ body {
   animation: card-enter 480ms ease-out both;
 }
 
-/* ---- Scrollbar kustom (light) ---- */
+/* ---- Scrollbar kustom (dark) ---- */
 .studio-scroll::-webkit-scrollbar { width: 8px; }
 .studio-scroll::-webkit-scrollbar-thumb {
-  background: #cbd5e1; /* slate-300 */
+  background: #475569; /* slate-600 */
   border-radius: 4px;
 }
-.studio-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; } /* slate-400 */
+.studio-scroll::-webkit-scrollbar-thumb:hover { background: #64748b; } /* slate-500 */
 .studio-scroll::-webkit-scrollbar-track { background: transparent; }
 
 /* ---- Reduced motion ---- */

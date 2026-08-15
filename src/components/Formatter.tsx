@@ -67,7 +67,7 @@ function ChevronDownIcon({ open }: { open: boolean }) {
       strokeWidth={2}
       strokeLinecap="round"
       strokeLinejoin="round"
-      className={`shrink-0 text-slate-500 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+      className={`shrink-0 text-slate-400 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
     >
       <path d="m6 9 6 6 6-6" />
     </svg>
@@ -166,7 +166,7 @@ function ModeDropdown({
         aria-controls="mode-listbox"
         aria-label="Mode huruf"
         aria-activedescendant={open ? `mode-option-${MODES[highlighted].id}` : undefined}
-        className="flex h-12 w-full items-center justify-between gap-2 rounded-sm border border-line-strong bg-white px-3.5 text-sm text-ink outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand focus:ring-offset-2"
+        className="flex h-12 w-full items-center justify-between gap-2 rounded-sm border border-line-strong bg-surface px-3.5 text-sm text-ink outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand focus:ring-offset-surface"
       >
         <span className="truncate">{MODES[selectedIndex].label}</span>
         <ChevronDownIcon open={open} />
@@ -176,7 +176,7 @@ function ModeDropdown({
         <div
           id="mode-listbox"
           role="listbox"
-          className="absolute left-0 right-0 top-full z-20 mt-1 rounded-md border border-line bg-white p-1 shadow-[0_2px_12px_rgba(0,0,0,0.06)]"
+          className="absolute left-0 right-0 top-full z-20 mt-1 rounded-md border border-line bg-surface p-1 shadow-[0_2px_12px_rgba(0,0,0,0.35)]"
         >
           {MODES.map((m, i) => (
             <div
@@ -189,8 +189,8 @@ function ModeDropdown({
                 onChange(m.id)
                 setOpen(false)
               }}
-              className={`flex cursor-pointer items-center justify-between gap-2 rounded-sm px-3 py-2 text-sm transition-colors hover:bg-brand/5 ${
-                i === highlighted ? 'bg-brand/5' : ''
+              className={`flex cursor-pointer items-center justify-between gap-2 rounded-sm px-3 py-2 text-sm transition-colors hover:bg-white/5 ${
+                i === highlighted ? 'bg-white/5' : ''
               } ${m.id === value ? 'font-medium text-brand' : 'text-ink'}`}
             >
               <span>{m.label}</span>
@@ -235,12 +235,12 @@ export default function Formatter() {
   }
 
   return (
-    <div className="card-enter w-full max-w-3xl rounded-md border border-line bg-white p-6 shadow-[0_2px_12px_rgba(0,0,0,0.06)] sm:p-8">
+    <div className="card-enter w-full max-w-3xl rounded-md border border-line bg-surface/70 p-6 shadow-[0_2px_12px_rgba(0,0,0,0.35)] backdrop-blur-md sm:p-8">
       {/* ===== Toolbar atas ===== */}
       <div className="mb-4 flex items-center justify-between">
         <label
           htmlFor="denah-input"
-          className="text-sm font-medium tracking-wide text-ink"
+          className="text-sm font-medium tracking-wide text-muted"
         >
           Input
         </label>
@@ -248,7 +248,7 @@ export default function Formatter() {
           type="button"
           onClick={() => setInput('')}
           disabled={!input.trim()}
-          className="rounded-sm border-[1.5px] border-line-strong px-3 py-1.5 text-sm font-medium text-ink transition-colors enabled:hover:border-danger enabled:hover:bg-danger/5 enabled:hover:text-danger focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40"
+          className="rounded-sm border-[1.5px] border-line-strong px-3 py-1.5 text-sm font-medium text-ink transition-colors enabled:hover:border-danger enabled:hover:bg-danger/10 enabled:hover:text-danger focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-surface disabled:cursor-not-allowed disabled:opacity-40"
         >
           Hapus
         </button>
@@ -260,7 +260,7 @@ export default function Formatter() {
         value={input}
         onChange={handleInputChange}
         placeholder="Tulis atau tempel daftar alamat di sini, satu per baris"
-        className="studio-scroll min-h-[320px] w-full resize-none rounded-sm border border-line-strong bg-white p-4 text-sm leading-relaxed text-ink outline-none transition-colors placeholder:text-slate-400 focus:border-brand focus:ring-2 focus:ring-brand focus:ring-offset-2"
+        className="studio-scroll min-h-[320px] w-full resize-none rounded-sm border border-line-strong bg-surface p-4 text-sm leading-relaxed text-ink outline-none transition-colors placeholder:text-slate-500 focus:border-brand focus:ring-2 focus:ring-brand focus:ring-offset-surface"
       />
 
       {/* ===== Toolbar bawah ===== */}
@@ -272,7 +272,7 @@ export default function Formatter() {
           onClick={handleCopy}
           disabled={!lines.length}
           aria-live="polite"
-          className={`flex h-12 w-full items-center justify-center gap-2 whitespace-nowrap rounded-sm px-4 text-sm font-semibold text-white transition-[transform,box-shadow,background-color] duration-200 enabled:hover:scale-[1.03] enabled:hover:shadow-[0_2px_8px_rgba(0,0,0,0.08)] active:translate-y-[-1px] disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none sm:w-auto sm:flex-1 ${
+          className={`flex h-12 w-full items-center justify-center gap-2 whitespace-nowrap rounded-sm px-4 text-sm font-semibold text-white transition-[transform,box-shadow,background-color] duration-200 enabled:hover:scale-[1.03] enabled:hover:shadow-[0_2px_8px_rgba(0,0,0,0.25)] active:translate-y-[-1px] disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none sm:w-auto sm:flex-1 ${
             copied
               ? 'bg-success'
               : copyError
