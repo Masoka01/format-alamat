@@ -56,3 +56,193 @@
   position: relative;
   z-index: 1;
 }
+
+/* =============================================
+   STUDIO DENAH — polish, keyframes, mascot
+   ============================================= */
+
+/* ---- Mascot pensil (digambar murni CSS) ---- */
+.pencil-wrap {
+  display: inline-flex;
+  cursor: pointer;
+  user-select: none;
+  line-height: 0;
+  border: none;
+  background: none;
+  padding: 0;
+}
+
+.pencil {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 100px;
+  transform-origin: 50% 88%;
+  filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.45));
+}
+
+.pencil-eraser {
+  position: absolute;
+  top: 0;
+  left: 8px;
+  width: 24px;
+  height: 16px;
+  background: linear-gradient(180deg, #f9a8d4, #ec4899);
+  border-radius: 6px 6px 0 0;
+}
+
+.pencil-eraser::after {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: -2px;
+  width: 28px;
+  height: 8px;
+  background: linear-gradient(180deg, #9ca3af, #6b7280);
+  border-radius: 2px;
+}
+
+.pencil-body {
+  position: absolute;
+  top: 16px;
+  left: 4px;
+  width: 32px;
+  height: 56px;
+  background: linear-gradient(180deg, #fde047, #f59e0b 55%, #fbbf24);
+  border-radius: 4px 4px 0 0;
+}
+
+.pencil-body::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 6px;
+  width: 4px;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.35);
+  border-radius: 2px;
+}
+
+.pencil-tip {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 16px solid transparent;
+  border-right: 16px solid transparent;
+  border-bottom: 26px solid #d97706;
+}
+
+.pencil-tip::after {
+  content: '';
+  position: absolute;
+  top: 14px;
+  left: -6px;
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-bottom: 12px solid #374151;
+}
+
+.pencil-eye {
+  position: absolute;
+  top: 34px;
+  width: 6px;
+  height: 8px;
+  background: #1f2937;
+  border-radius: 50%;
+  animation: blink 4s infinite;
+}
+
+.pencil-eye.left  { left: 9px; }
+.pencil-eye.right { right: 9px; }
+
+/* ---- Keyframes ---- */
+@keyframes pencil-bob {
+  0%, 100% { transform: rotate(-6deg) translateY(0); }
+  50%      { transform: rotate(6deg) translateY(-6px); }
+}
+
+@keyframes pencil-type {
+  0%, 100% { transform: rotate(-10deg) translateY(0); }
+  25%      { transform: rotate(-2deg) translateY(-2px); }
+  50%      { transform: rotate(6deg) translateY(0); }
+  75%      { transform: rotate(-2deg) translateY(-2px); }
+}
+
+@keyframes pencil-happy {
+  0%   { transform: rotate(0) translateY(0); }
+  25%  { transform: rotate(15deg) translateY(-16px); }
+  50%  { transform: rotate(-15deg) translateY(-10px); }
+  75%  { transform: rotate(10deg) translateY(-14px); }
+  100% { transform: rotate(0) translateY(0); }
+}
+
+@keyframes pencil-sad {
+  0%, 100% { transform: rotate(-16deg) translateY(2px); }
+  50%      { transform: rotate(-12deg) translateY(5px); }
+}
+
+@keyframes blink {
+  0%, 92%, 100% { transform: scaleY(1); }
+  95%           { transform: scaleY(0.1); }
+}
+
+@keyframes confetti-fall {
+  0%   { transform: translate(0, 0) rotate(0deg); opacity: 1; }
+  100% { transform: translate(var(--dx), 110vh) rotate(var(--rot)); opacity: 0; }
+}
+
+@keyframes rainbow-hue {
+  0%   { filter: hue-rotate(0deg); }
+  100% { filter: hue-rotate(360deg); }
+}
+
+@keyframes rainbow-border {
+  0%   { border-color: #f87171; box-shadow: 0 0 40px rgba(248, 113, 113, 0.35); }
+  17%  { border-color: #fbbf24; box-shadow: 0 0 40px rgba(251, 191, 36, 0.35); }
+  34%  { border-color: #4ade80; box-shadow: 0 0 40px rgba(74, 222, 128, 0.35); }
+  51%  { border-color: #22d3ee; box-shadow: 0 0 40px rgba(34, 211, 238, 0.35); }
+  68%  { border-color: #3b82f6; box-shadow: 0 0 40px rgba(59, 130, 246, 0.35); }
+  85%  { border-color: #c084fc; box-shadow: 0 0 40px rgba(192, 132, 252, 0.35); }
+  100% { border-color: #f87171; box-shadow: 0 0 40px rgba(248, 113, 113, 0.35); }
+}
+
+/* ---- Mood pensil ---- */
+.mood-idle   .pencil { animation: pencil-bob 2.4s ease-in-out infinite; }
+.mood-typing .pencil { animation: pencil-type 0.5s ease-in-out infinite; }
+.mood-happy  .pencil { animation: pencil-happy 0.9s ease-in-out; }
+.mood-sad    .pencil {
+  animation: pencil-sad 2s ease-in-out infinite;
+  filter: grayscale(0.85) drop-shadow(0 6px 12px rgba(0, 0, 0, 0.45));
+}
+
+/* ---- Rainbow mode ---- */
+.rainbow-active .pencil,
+.rainbow-active {
+  animation: rainbow-hue 2s linear infinite;
+}
+
+.studio-card.rainbow {
+  animation: rainbow-border 3s linear infinite;
+}
+
+/* ---- Scrollbar kustom untuk panel hasil ---- */
+.studio-scroll::-webkit-scrollbar { width: 8px; }
+.studio-scroll::-webkit-scrollbar-thumb {
+  background: rgba(96, 165, 250, 0.35);
+  border-radius: 9999px;
+}
+.studio-scroll::-webkit-scrollbar-track { background: transparent; }
+
+/* ---- Reduced motion ---- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
