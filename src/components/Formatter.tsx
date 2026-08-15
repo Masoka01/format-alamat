@@ -292,7 +292,7 @@ export default function Formatter() {
         {/* ===== Kartu Hasil ===== */}
         <section className="flex flex-col rounded-md border border-line bg-surface/70 p-6 shadow-[0_2px_12px_rgba(0,0,0,0.35)] backdrop-blur-md sm:p-8">
           <div className="mb-4 flex items-center justify-between gap-3">
-            <span className="text-sm font-medium tracking-wide text-muted">Hasil</span>
+            <label htmlFor="denah-result" className="text-sm font-medium tracking-wide text-muted">Hasil</label>
             <div className="w-full sm:w-auto sm:shrink-0">
               <ModeDropdown value={mode} onChange={setMode} />
             </div>
