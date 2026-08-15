@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Semua baris ber-awalan daftar otomatis jadi bullet `- `, dengan spasi setelah titik/koma (kecuali gelar akademik), tanpa perubahan UI.
+**Goal:** Baris ber-awalan daftar otomatis jadi bullet — `- ` untuk daftar biasa, `• ` untuk daftar di bawah judul "Turut mengundang" — dengan spasi setelah titik/koma (kecuali gelar akademik), tanpa perubahan UI.
 
-**Architecture:** Modul murni baru `src/lib/listFormat.ts` mengekspor `formatListLine(line)` (buang karakter tak terlihat → ganti awalan daftar dengan `- ` → spasi titik/koma dengan perlindungan gelar → trim). `Formatter.tsx` menghapus `stripPrefix` dan memakai `formatListLine` di `formatLines`. Pipeline lain (typo, case, auto-copy) tidak berubah.
+**Architecture:** Modul murni `src/lib/listFormat.ts` mengekspor `formatList(lines)` (deteksi section "Turut mengundang" lintas-baris → bullet `• `) dan `formatListLine(line, bullet?)` (buang karakter tak terlihat → ganti awalan daftar → spasi titik/koma dengan perlindungan gelar → trim). `Formatter.tsx` memakai `formatList` di `formatLines`. Pipeline lain (typo, case, auto-copy) tidak berubah. Bagian 1 (Task 1–3) SELESAI; Bagian 2 (Task 4–5) menambahkan bullet `•` (keputusan user 15-08-2026).
 
 **Tech Stack:** Vite + React 19 + TypeScript (no JSX di modul baru; test via `node --experimental-strip-types` — repo tidak punya test framework).
 
@@ -290,3 +290,273 @@ git -c user.name="dev" -c user.email="dev@local" commit -m "feat: normalisasi ca
 ```
 
 **Step 3 — verifikasi**: `npx tsc -b --force` exit 0; `npm run build` PASS. Verifikasi live (orchestrator): data undangan 14 baris = persis blok penerimaan spec (termasuk `S.IP (Camat Cidahu)`, `S.Pd`), `rt.01/rw.02` → `RT. 01/RW. 02`, `(rw)` → `(RW)`, `spd` → `S.Pd`, WORD JOINER & typo & mode upper/lower/none tetap.
+
+---
+
+## Bagian 2: Bullet `•` untuk Section "Turut Mengundang" (keputusan user 15-08-2026)
+
+Latar: setelah Task 1–3 selesai & diverifikasi live, user meminta daftar nama di bawah judul "Turut mengundang…" memakai bullet `• ` (bukan `- `); daftar lain (alamat) tetap `- `. Deteksi berbasis judul (bukan klasifikasi konten — sample alamat sendiri mengandung baris nama seperti `H. Hasanudin S.Pd`). Aturan lengkap: bagian "Deteksi section 'Turut mengundang'" di spec.
+
+### Task 4: Modul `listFormat.ts` — `formatList` + param `bullet`
+
+**Files:**
+- Modify: `src/lib/listFormat.ts`
+
+**Interfaces:**
+- Consumes: fungsi `formatListLine`, konstanta `KARAKTER_TAK_TERLIHAT`, `AWALAN_DAFTAR` (dari Bagian 1 Task 1 — file sudah ada).
+- Produces: `formatList(lines: string[]): string[]` — dan `formatListLine(line: string, bullet: string = '- ')` dengan param kedua opsional (kompatibel dengan pemanggilan lama & test Task 1).
+
+- [ ] **Step 1: Tulis test gagal (skrip assert node)**
+
+Jalankan (harap GAGAL: `formatList` belum diekspor):
+
+```bash
+node --experimental-strip-types --input-type=module -e "
+import { formatList } from './src/lib/listFormat.ts'
+const kasus = [
+  // [input, harapan]
+  [
+    ['Turut mengundang mempelai wanita', '1. Keluarga Besar Alm. Bpk H. Ropa\x27i', '2. Kamaludin (RT)'],
+    ['Turut mengundang mempelai wanita', '• Keluarga Besar Alm. Bpk H. Ropa\x27i', '• Kamaludin (RT)'],
+  ],
+  [
+    ['Turut mengundang mempelai wanita', '1. H. Mahpud', 'Turut mengundang mempelai pria', '1. H. Hasanudin S.Pd'],
+    ['Turut mengundang mempelai wanita', '• H. Mahpud', 'Turut mengundang mempelai pria', '• H. Hasanudin S.Pd'],
+  ],
+  [
+    ['Turut mengundang mempelai wanita', '1. H. Mahpud', 'Alamat', '1. Jl.Raya Sudirman'],
+    ['Turut mengundang mempelai wanita', '• H. Mahpud', 'Alamat', '- Jl. Raya Sudirman'],
+  ],
+  [
+    ['1. omah kampung', '2. Jl.Raya Sudirman No.5'],
+    ['- omah kampung', '- Jl. Raya Sudirman No. 5'],
+  ],
+  [
+    ['TURUT MENGUNDANG mempelai wanita', '1. Ust. Hasan'],
+    ['TURUT MENGUNDANG mempelai wanita', '• Ust. Hasan'],
+  ],
+  [
+    ['Turut mengundang mempelai wanita', '1. Asep Saepul Jamal', '', '1. Kamaludin (RT)'],
+    ['Turut mengundang mempelai wanita', '• Asep Saepul Jamal', '', '• Kamaludin (RT)'],
+  ],
+  [
+    ['1. H. Mahpud', '', '2. Ust. Hasan'],
+    ['- H. Mahpud', '', '- Ust. Hasan'],
+  ],
+]
+let gagal = 0
+for (const [masukan, harapan] of kasus) {
+  const hasil = formatList(masukan)
+  if (JSON.stringify(hasil) !== JSON.stringify(harapan)) { console.error('GAGAL:', JSON.stringify(masukan), '\u2192', JSON.stringify(hasil), 'harap', JSON.stringify(harapan)); gagal++ }
+}
+console.log(gagal === 0 ? 'SEMUA PASS (' + kasus.length + ' kasus)' : 'GAGAL: ' + gagal + ' kasus')
+process.exit(gagal === 0 ? 0 : 1)
+"
+```
+
+Expected: FAIL — `formatList is not exported`.
+
+- [ ] **Step 2: Implementasi minimal**
+
+Di `src/lib/listFormat.ts`:
+
+1. Tambah konstanta (setelah `AWALAN_DAFTAR`):
+   ```ts
+   const HEADER_TURUT_UNDANG = /\bturut mengundang\b/i
+   ```
+2. Ubah fungsi `formatListLine` — seluruh fungsi jadi (param `bullet`, default `'- '`):
+   ```ts
+   /** Normalisasi satu baris daftar: bullet (default '- '), spasi titik/koma, bersih dari karakter tak terlihat. */
+   export function formatListLine(line: string, bullet: string = '- '): string {
+     const bersih = line
+       .replace(KARAKTER_TAK_TERLIHAT, '')
+       .replace(AWALAN_DAFTAR, bullet)
+     let hasil = ''
+     for (let i = 0; i < bersih.length; i++) {
+       const ch = bersih[i]
+       hasil += ch
+       if (ch !== '.' && ch !== ',') continue
+       const berikut = bersih[i + 1]
+       if (berikut === undefined) continue
+       if (ch === ',' && /[0-9]/.test(berikut)) continue // koma desimal
+       if (!/[A-Za-z0-9]/.test(berikut)) continue
+       if (ch === ',' || !adalahGelarAkademik(bersih, i)) hasil += ' '
+     }
+     return hasil.trim()
+   }
+   ```
+3. Tambah fungsi ekspor di akhir file:
+   ```ts
+   /** Normalisasi seluruh baris: deteksi section "Turut mengundang" → bullet '• '. */
+   export function formatList(lines: string[]): string[] {
+     let sectionTurutUndang = false
+     return lines.map((line) => {
+       const polos = line.replace(KARAKTER_TAK_TERLIHAT, '').trim()
+       if (HEADER_TURUT_UNDANG.test(polos)) {
+         sectionTurutUndang = true
+         return polos
+       }
+       if (AWALAN_DAFTAR.test(polos)) {
+         return formatListLine(polos, sectionTurutUndang ? '• ' : '- ')
+       }
+       if (polos !== '') sectionTurutUndang = false
+       return polos
+     })
+   }
+   ```
+
+- [ ] **Step 3: Jalankan test — harus PASS**
+
+Jalankan ulang perintah Step 1. Expected: `SEMUA PASS (7 kasus)` dan exit 0.
+
+- [ ] **Step 4: Regression test Task 1 (formatListLine tetap) — harus PASS**
+
+Jalankan ulang skrip test Task 1 Bagian 1 (15 kasus). Expected: `SEMUA PASS (15 kasus)` dan exit 0.
+
+- [ ] **Step 5: Regression pipeline penuh (undangan `• ` + alamat `- `) — harus PASS**
+
+```bash
+node --experimental-strip-types --input-type=module <<'EOF'
+import { formatList } from './src/lib/listFormat.ts'
+import { fixAddressTypos } from './src/lib/typoFix.ts'
+import { toTitleCase } from './src/lib/caseTitle.ts'
+
+const pipeline = (raw: string): string[] =>
+  formatList(raw.split('\n')).filter(Boolean).map(fixAddressTypos).map(toTitleCase)
+
+const undangan = `Turut mengundang mempelai wanita
+1. Keluarga Besar Alm. Bpk H. Ropa'i
+2. Keluarga Besar Alm. Bpk H. Hamdani
+3. Asep Saepul Jamal (Kakak)
+4. Muhammad Krisna (Kakak)
+5. Bpk H. Tamtam Alamsyah, S.IP (Camat Cidahu)
+6. Bpk. Opik (Kepala Desa Jayabakti)
+7. H. Mahpud
+8. H. Basit
+9. H. Puadudin
+10. Ust. Hasan
+11. Ust. Ejang Syaripudin
+12. H. Wandi (RW)
+13. Kamaludin (RT)
+
+Turut mengundang mempelai pria
+1. Keluarga Besar Ema Atikah
+2. H. Hasanudin S.Pd
+3. Ust. Moch Sabil Arsyad`
+
+const harapanUndangan = `Turut Mengundang Mempelai Wanita
+• Keluarga Besar Alm. Bpk H. Ropa'i
+• Keluarga Besar Alm. Bpk H. Hamdani
+• Asep Saepul Jamal (Kakak)
+• Muhammad Krisna (Kakak)
+• Bpk H. Tamtam Alamsyah, S.IP (Camat Cidahu)
+• Bpk. Opik (Kepala Desa Jayabakti)
+• H. Mahpud
+• H. Basit
+• H. Puadudin
+• Ust. Hasan
+• Ust. Ejang Syaripudin
+• H. Wandi (RW)
+• Kamaludin (RT)
+Turut Mengundang Mempelai Pria
+• Keluarga Besar Ema Atikah
+• H. Hasanudin S.Pd
+• Ust. Moch Sabil Arsyad`
+
+const hasilUndangan = pipeline(undangan).join('\n')
+if (hasilUndangan !== harapanUndangan) {
+  console.error('GAGAL pipeline undangan:\n' + hasilUndangan)
+  process.exit(1)
+}
+console.log('PIPELINE UNDANGAN PASS')
+
+const alamat = `1. omah kampung
+2. Jl.Raya Sudirman No.5
+3. Komp. Permata Indah RT.01/RW.02
+4. (rw) RT 01
+5. H. Hasanudin spd
+6. Ibu s.ip (camat cidahu)
+7. \u2060Jakarta
+8. JLN merdeka`
+
+const harapanAlamat = `- Omah Kampung
+- Jalan. Raya Sudirman No. 5
+- Komp. Permata Indah RT. 01/RW. 02
+- (RW) RT 01
+- H. Hasanudin S.Pd
+- Ibu S.IP (Camat Cidahu)
+- Jakarta
+- Jalan Merdeka`
+
+const hasilAlamat = pipeline(alamat).join('\n')
+if (hasilAlamat !== harapanAlamat) {
+  console.error('GAGAL pipeline alamat:\n' + hasilAlamat)
+  process.exit(1)
+}
+console.log('PIPELINE ALAMAT PASS')
+EOF
+```
+
+Expected: `PIPELINE UNDANGAN PASS` dan `PIPELINE ALAMAT PASS`, exit 0.
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add src/lib/listFormat.ts
+git -c user.name="dev" -c user.email="dev@local" commit -m "feat: modul formatList (bullet • untuk section turut mengundang)"
+```
+
+---
+
+### Task 5: Integrasi ke `Formatter.tsx`
+
+**Files:**
+- Modify: `src/components/Formatter.tsx:9-11` (import `formatListLine` → `formatList`), `:36-43` (`formatLines`)
+
+**Interfaces:**
+- Consumes: `formatList(lines: string[]): string[]` dari Task 4 (`src/lib/listFormat.ts`)
+- Produces: `formatLines(raw, mode)` tetap dengan tanda tangan sama (kompatibel dengan `lines`, `handlePaste`)
+
+- [ ] **Step 1: Ubah Formatter.tsx**
+
+1. Ganti import di baris 10:
+   ```ts
+   import { formatList } from '@/lib/listFormat'
+   ```
+2. Ganti `formatLines`:
+   ```ts
+   function formatLines(raw: string, mode: CaseMode): string[] {
+     return formatList(raw.split('\n'))
+       .filter(Boolean)
+       .map(fixAddressTypos)
+       .map((l) => applyCase(l, mode))
+   }
+   ```
+
+Tidak ada perubahan lain di file ini.
+
+- [ ] **Step 2: Verifikasi statis**
+
+```bash
+npx tsc -b --force
+```
+Expected: exit 0. Lalu:
+```bash
+npm run build
+```
+Expected: PASS.
+
+- [ ] **Step 3: Verifikasi live (Playwright, dev server http://localhost:5173) — oleh orchestrator**
+
+1. Isi `#denah-input` dengan data undangan 18 baris (blok acceptance spec, bagian "Kriteria penerimaan") via native setter + event `input`.
+2. Baca `#denah-result`: harus sama persis dengan blok acceptance — judul `Turut Mengundang Mempelai Wanita`/`Turut Mengundang Mempelai Pria` tanpa bullet, 16 baris nama dengan `• `, spasi titik/koma & gelar rapat seperti sebelumnya.
+3. Ganti input dengan sample alamat (8 baris dari Task 4 Step 5): semua baris tetap `- `, termasuk baris nama `H. Hasanudin S.Pd` dan `Ibu S.IP (Camat Cidahu)` di dalam sample alamat (bukti deteksi berbasis judul, bukan konten).
+4. Mode case: dropdown → "SEMUA BESAR" → `• KELUARGA BESAR ALM. BPK H. ROPA'I`; "semua kecil" → `• keluarga besar alm. bpk h. ropa'i`; kembali "Huruf Depan Kapital".
+5. Console: 0 error.
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add src/components/Formatter.tsx
+git -c user.name="dev" -c user.email="dev@local" commit -m "feat: bullet • untuk daftar turut mengundang"
+```
