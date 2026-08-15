@@ -188,3 +188,104 @@ Expected: PASS.
 git add src/components/Formatter.tsx
 git -c user.name="dev" -c user.email="dev@local" commit -m "feat: format daftar otomatis (bullet + spasi titik)"
 ```
+
+### Task 3: Normalisasi casing mode Title — `src/lib/caseTitle.ts`
+
+**Latar**: keputusan user 15-08-2026 (setelah live check Task 2): mode Title harus menormalkan `rw` → `RW` dan gelar akademik ke bentuk baku (KBBI). `toTitleCase` lama (di `Formatter.tsx:26-28`) mengecilkan sisa huruf tiap token sehingga `S.IP` → `S.ip`, `(Camat Cidahu)` → `(camat Cidahu)`, `RT.01` → `Rt. 01`. Detail aturan: bagian "Normalisasi casing mode Title" di spec.
+
+**Perubahan**:
+1. File baru `src/lib/caseTitle.ts` — `toTitleCase` dipindah + ditingkatkan (aturan RT/RW, gelar baku tanpa/bartitik, kata biasa). Mengikuti pola `typoFix.ts`/`listFormat.ts`.
+2. `src/components/Formatter.tsx`: hapus fungsi `toTitleCase` lokal, tambah `import { toTitleCase } from '@/lib/caseTitle'`. Tidak ada perubahan lain.
+
+Kode modul (persis):
+
+```ts
+// src/lib/caseTitle.ts
+// Normalisasi casing mode Title (keputusan user 15-08-2026):
+// RT/RW → huruf besar; gelar akademik → bentuk baku; kata biasa → kapital-awal.
+
+const GELAR_TANPA_TITIK: Record<string, string> = {
+  spd: 'S.Pd',
+  sip: 'S.IP',
+  skom: 'S.Kom',
+  ssi: 'S.Si',
+  msc: 'M.Sc',
+  phd: 'Ph.D',
+  mba: 'MBA',
+}
+
+function bagianGelar(b: string): string {
+  if (b === 'ip') return 'IP'
+  if (b === 'mba') return 'MBA'
+  return b.charAt(0).toUpperCase() + b.slice(1).toLowerCase()
+}
+
+function normalisasiToken(w: string): string {
+  const imbuhanAwal = w.match(/^[^A-Za-z]*/)?.[0] ?? ''
+  const imbuhanAkhir = w.match(/[^A-Za-z]*$/)?.[0] ?? ''
+  const inti = w.slice(imbuhanAwal.length, imbuhanAkhir ? w.length - imbuhanAkhir.length : w.length)
+
+  // 1) RT/RW (dengan atau tanpa titik)
+  if (/^(rt|rw)\.?$/i.test(inti)) {
+    return imbuhanAwal + inti.toUpperCase() + imbuhanAkhir
+  }
+
+  // 2) gelar tanpa titik
+  const kunci = inti.toLowerCase()
+  if (kunci in GELAR_TANPA_TITIK) {
+    return imbuhanAwal + GELAR_TANPA_TITIK[kunci] + imbuhanAkhir
+  }
+
+  // 3) gelar bertitik: pola huruf.titik.huruf → bentuk baku
+  if (kunci.includes('.')) {
+    const bagian = inti.split('.')
+    if (bagian.length >= 2 && bagian.every((b) => /^[A-Za-z]{1,5}$/.test(b))) {
+      return imbuhanAwal + bagian.map(bagianGelar).join('.') + imbuhanAkhir
+    }
+  }
+
+  // 4) kata biasa: huruf pertama kapital, sisanya kecil
+  const huruf = inti.match(/[A-Za-z]/)
+  if (!huruf || huruf.index === undefined) return w
+  const intiBaru = inti.slice(0, huruf.index) + huruf[0].toUpperCase() + inti.slice(huruf.index + 1).toLowerCase()
+  return imbuhanAwal + intiBaru + imbuhanAkhir
+}
+
+export function toTitleCase(str: string): string {
+  return str.replace(/\S+/g, normalisasiToken)
+}
+```
+
+**Step 1 — test** (sebelum modul dibuat: `ERR_MODULE_NOT_FOUND`; sesudah: `SEMUA PASS (29 kasus)`, exit 0):
+
+```bash
+node --experimental-strip-types --input-type=module -e "
+import { toTitleCase } from './src/lib/caseTitle.ts'
+const kasus = [
+  ['rw', 'RW'], ['rt.', 'RT.'], ['(rw)', '(RW)'], ['01/rw.', '01/RW.'],
+  ['spd', 'S.Pd'], ['sip', 'S.IP'], ['msc', 'M.Sc'], ['phd', 'Ph.D'], ['mba', 'MBA'],
+  ['s.pd', 'S.Pd'], ['s.pd.', 'S.Pd.'], ['s.ip', 'S.IP'], ['S.IP', 'S.IP'],
+  ['ph.d', 'Ph.D'], ['m.sc', 'M.Sc'], ['s.kom', 'S.Kom'], ['a.md', 'A.Md'],
+  ['Alm.', 'Alm.'], ['alm.', 'Alm.'], ['Bpk.', 'Bpk.'], ['H.', 'H.'], ['No.', 'No.'],
+  ['(camat cidahu)', '(Camat Cidahu)'], ['(kakak)', '(Kakak)'], ['(RT)', '(RT)'],
+  ['omah', 'Omah'], ['JALAN', 'Jalan'], [\"Ropa'i\", \"Ropa'i\"], ['01', '01'],
+  [\"Keluarga Besar Alm. Bpk H. Ropa'i\", \"Keluarga Besar Alm. Bpk H. Ropa'i\"],
+]
+let gagal = 0
+for (const [input, harapan] of kasus) {
+  const hasil = toTitleCase(input)
+  if (hasil !== harapan) { gagal++; console.log('GAGAL:', JSON.stringify(input), '→', JSON.stringify(hasil), '(harapan', JSON.stringify(harapan) + ')') }
+}
+if (gagal === 0) console.log('SEMUA PASS (' + kasus.length + ' kasus)')
+else { console.log('GAGAL ' + gagal + ' kasus'); process.exit(1) }
+"
+```
+
+**Step 2 — commit**:
+
+```bash
+git add src/lib/caseTitle.ts src/components/Formatter.tsx
+git -c user.name="dev" -c user.email="dev@local" commit -m "feat: normalisasi casing mode title (RT/RW + gelar baku KBBI)"
+```
+
+**Step 3 — verifikasi**: `npx tsc -b --force` exit 0; `npm run build` PASS. Verifikasi live (orchestrator): data undangan 14 baris = persis blok penerimaan spec (termasuk `S.IP (Camat Cidahu)`, `S.Pd`), `rt.01/rw.02` → `RT. 01/RW. 02`, `(rw)` → `(RW)`, `spd` → `S.Pd`, WORD JOINER & typo & mode upper/lower/none tetap.
