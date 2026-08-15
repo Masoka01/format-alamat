@@ -5,6 +5,7 @@ import {
   type ChangeEvent,
   type KeyboardEvent as ReactKeyboardEvent,
 } from 'react'
+import { fixAddressTypos } from '@/lib/typoFix'
 
 type CaseMode = 'title' | 'upper' | 'lower' | 'none'
 
@@ -213,6 +214,7 @@ export default function Formatter() {
     .split('\n')
     .map(stripPrefix)
     .filter(Boolean)
+    .map(fixAddressTypos)
     .map((l) => applyCase(l, mode))
 
   function handleInputChange(e: ChangeEvent<HTMLTextAreaElement>) {
