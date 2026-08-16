@@ -262,9 +262,9 @@ function ModeDropdown({
                 onChange(m.id)
                 setOpen(false)
               }}
-              className={`flex cursor-pointer items-center justify-between gap-2 rounded-md px-3.5 py-3 text-sm transition-colors duration-150 ${
-                i === highlighted ? 'bg-white/10' : ''
-              } ${m.id === value ? 'font-medium text-ink' : 'text-muted hover:bg-white/10 hover:text-ink'}`}
+              className={`text-shadow-soft flex cursor-pointer items-center justify-between gap-2 rounded-md px-3.5 py-3 text-sm transition-colors duration-150 ${
+                i === highlighted ? 'bg-white/15' : ''
+              } ${m.id === value ? 'font-medium text-ink' : 'text-muted hover:bg-white/15 hover:text-ink'}`}
             >
               <span>{m.label}</span>
               {m.id === value && <CheckIcon />}
