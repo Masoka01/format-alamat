@@ -329,7 +329,7 @@ export default function Formatter() {
         {/* ===== Kartu Input ===== */}
         <section className="glass-panel flex flex-col rounded-lg p-6 sm:p-8">
           <div className="mb-5 flex items-center justify-between gap-3">
-            <label htmlFor="denah-input" className="text-xs font-semibold tracking-[0.12em] text-muted">
+            <label htmlFor="denah-input" className="text-shadow-soft text-xs font-semibold tracking-[0.12em] text-muted">
               Input
             </label>
             <button
@@ -348,14 +348,14 @@ export default function Formatter() {
             onChange={handleInputChange}
             onPaste={handlePaste}
             placeholder="Tulis atau tempel daftar alamat di sini, satu per baris"
-            className="glass-field studio-scroll min-h-[320px] flex-1 w-full resize-none rounded-lg p-5 text-sm leading-relaxed text-ink outline-none transition-[border-color,box-shadow] duration-200 placeholder:text-muted/60 hover:border-white/30 focus:border-white/50 focus:ring-2 focus:ring-white/25"
+            className="glass-field text-shadow-soft studio-scroll min-h-[320px] flex-1 w-full resize-none rounded-lg p-5 text-sm font-medium leading-relaxed text-ink outline-none transition-[border-color,box-shadow] duration-200 placeholder:text-muted/80 hover:border-white/30 focus:border-white/50 focus:ring-2 focus:ring-white/30"
           />
         </section>
 
         {/* ===== Kartu Hasil ===== */}
         <section className="glass-panel flex flex-col rounded-lg p-6 sm:p-8">
           <div className="mb-5 flex items-center justify-between gap-3">
-            <label htmlFor="denah-result" className="text-xs font-semibold tracking-[0.12em] text-muted">Hasil</label>
+            <label htmlFor="denah-result" className="text-shadow-soft text-xs font-semibold tracking-[0.12em] text-muted">Hasil</label>
             <div className="w-full sm:w-auto sm:shrink-0">
               <ModeDropdown value={mode} onChange={setMode} />
             </div>
@@ -365,7 +365,7 @@ export default function Formatter() {
             readOnly
             value={lines.join('\n')}
             placeholder="Hasil format akan muncul di sini"
-            className="glass-field studio-scroll min-h-[320px] flex-1 w-full resize-none rounded-lg p-5 text-sm leading-relaxed text-ink outline-none transition-[border-color,box-shadow] duration-200 placeholder:text-muted/60 hover:border-white/30 focus:border-white/50 focus:ring-2 focus:ring-white/25"
+            className="glass-field text-shadow-soft studio-scroll min-h-[320px] flex-1 w-full resize-none rounded-lg p-5 text-sm font-medium leading-relaxed text-ink outline-none transition-[border-color,box-shadow] duration-200 placeholder:text-muted/80 hover:border-white/30 focus:border-white/50 focus:ring-2 focus:ring-white/30"
           />
           <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center">
             <button

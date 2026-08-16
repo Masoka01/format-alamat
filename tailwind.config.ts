@@ -12,8 +12,8 @@ const config: Config = {
       },
       colors: {
         brand: { DEFAULT: '#007BFF', dark: '#0069D9' },
-        ink: '#E9ECEF',
-        muted: '#ADB5BD',
+        ink: '#F8F9FA',
+        muted: '#CED4DA',
         page: '#212529',
         surface: '#2B3036',
         line: 'rgba(255, 255, 255, 0.1)',
