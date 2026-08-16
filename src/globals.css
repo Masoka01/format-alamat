@@ -81,7 +81,7 @@ body {
 @media (orientation: portrait) {
   .bg-video {
     object-fit: cover;
-    object-position: right center; /* geser ke kanan, tidak pas tengah (user 16-08-2026) */
+    object-position: 75% center; /* tengah-tengah kanan & tengah (user 16-08-2026) */
     --bg-video-zoom: 1;
   }
 }
