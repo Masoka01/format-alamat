@@ -9,9 +9,10 @@
   /* Warna veil dalam format R G B (tanpa koma) */
   --bg-overlay-color: 17 19 24;
 
-  /* Kekuatan veil (0.0 - 1.0) — sedikit dipertegas (0.76)
-     karena kartu kini transparan penuh; video tetap tembus jelas */
-  --bg-overlay-opacity: 0.76;
+  /* Kekuatan veil (0.0 - 1.0) — 0 = background tampil warna apa adanya
+     (keputusan user 16-08-2026: "gausah digelapin"). Kalau nanti butuh
+     kontras teks ekstra di area video terang, naikkan sedikit. */
+  --bg-overlay-opacity: 0;
 
   color-scheme: dark;
 }
