@@ -59,14 +59,12 @@ body {
 }
 
 /* ---- Video background (di atas backdrop & foto fallback, di bawah veil) ----
-   object-fit: contain → video tampil hampir UTUH ("crop tipis"), bukan
-   cover yang memotong 74% di layar HP. Area sisa diisi backdrop blur.
-   Zoom skala dari tengah: crop simetris tipis per sisi.
-   - Landscape (default 1.1): ≈ rasa cover awal (adegan ~91% lebar,
-     tanpa bar) — desktop tidak berubah kesannya.
-   - Portrait (1.3): pilihan user "crop tipis" — adegan ~77% lebar,
-     video ~34% tinggi layar.
-   Satu variabel --bg-video-zoom untuk tuning. */
+   - Landscape (default): object-fit contain + zoom 1.1 → video tampil
+     hampir UTUH (adegan ~91% lebar, tanpa bar); area sisa diisi
+     backdrop blur statis.
+   - Portrait (HP): object-fit cover penuh layar — background utuh
+     tanpa strip/backdrop (keputusan user 16-08-2026: "mode hp jadiin
+     bg cover aja biar gak ribet"). Adegan tampil potongan tengah. */
 .bg-video {
   --bg-video-zoom: 1.1;
   position: fixed;
@@ -82,7 +80,8 @@ body {
 
 @media (orientation: portrait) {
   .bg-video {
-    --bg-video-zoom: 1.3;
+    object-fit: cover;
+    --bg-video-zoom: 1;
   }
 }
 
@@ -136,15 +135,15 @@ body {
 /* ============================================================
    Glassmorphism — permukaan kaca
    ------------------------------------------------------------
-   - Kartu (.glass-panel), area teks (.glass-field), & menu
-     (.glass-menu): 100% transparan, hanya border putih tipis.
-     Video + veil di belakang yang terlihat; kontras teks dijaga
-     veil + text-shadow.
-   - Tombol (.glass-btn): tetap berpermukaan (isi semi-transparan
-     + blur) agar kontras dan affordance.
-   - Fallback: bila backdrop-filter tidak didukung, hanya tombol
-     yang mendapat isi solid; kartu/field/menu tetap transparan
-     (veil yang menjaga kontras, bukan fill).
+   - Kartu (.glass-panel), area teks (.glass-field), menu
+     (.glass-menu), & tombol (.glass-btn): 100% transparan, hanya
+     border putih tipis. Video di belakang yang terlihat; kontras
+     teks dijaga text-shadow.
+   - Affordance tombol tanpa fill: border (white/45 → white/70
+     saat hover) + scale 1.04 saat hover (lihat Formatter.tsx).
+   - Pengecualian fungsional: state Salin "Disalin" (hijau) /
+     "Gagal nyalin" (merah) tetap memakai isi warna transien
+     sebagai umpan balik 2 detik — bukan state diam.
    ============================================================ */
 @layer components {
   /* Kartu utama: transparan penuh, hanya border tipis */
@@ -159,13 +158,14 @@ body {
     border: 1px solid rgba(255, 255, 255, 0.16);
   }
 
-  /* Tombol outline putih: border lebih tegas, isi lebih terang */
+  /* Tombol outline putih: transparan penuh seperti kartu/field/menu.
+     Border lebih tegas (white/45) agar tetap terbaca sebagai aksi —
+     fill & blur dihapus (keputusan user 16-08-2026). Hover: scale
+     + border terang di Formatter.tsx. */
   .glass-btn {
-    background-color: rgba(255, 255, 255, 0.08);
+    background-color: transparent;
     border: 1px solid rgba(255, 255, 255, 0.45);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
-    -webkit-backdrop-filter: blur(12px) saturate(140%);
-    backdrop-filter: blur(12px) saturate(140%);
   }
 
   /* Menu dropdown: transparan penuh, border tipis seperti kartu.
@@ -182,11 +182,9 @@ body {
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
   }
 
-  /* Fallback: browser/Safari lama tanpa backdrop-filter →
-     hanya tombol yang dapat isi solid; sisanya tetap transparan */
-  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-    .glass-btn { background-color: rgba(43, 48, 54, 0.92); }
-  }
+  /* Fallback: browser/Safari lama tanpa backdrop-filter → tombol
+     tetap transparan seperti kartu/field/menu (keputusan user
+     16-08-2026: "semua tombol transparan"). Tidak ada isi solid. */
 }
 
 /* ---- Reduced motion ---- */
