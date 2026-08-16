@@ -236,7 +236,7 @@ function ModeDropdown({
         aria-controls="mode-listbox"
         aria-label="Mode huruf"
         aria-activedescendant={open ? `mode-option-${MODES[highlighted].id}` : undefined}
-        className="glass-btn flex h-12 w-full items-center justify-between gap-2.5 rounded-lg px-4 text-sm font-medium text-ink outline-none transition-[border-color,background-color,transform] duration-200 hover:border-white/70 hover:bg-white/15 focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black/30 active:scale-[0.99]"
+        className="glass-btn flex h-12 w-full items-center justify-between gap-2.5 rounded-lg px-4 text-sm font-medium text-ink outline-none transition-[border-color,transform] duration-200 hover:scale-[1.04] hover:border-white/70 focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black/30 active:scale-[0.99]"
       >
         <span className="flex min-w-0 items-center gap-2.5">
           <TypeIcon />
@@ -336,7 +336,7 @@ export default function Formatter() {
               type="button"
               onClick={() => setInput('')}
               disabled={!input.trim()}
-              className="glass-btn flex h-11 shrink-0 items-center justify-center gap-2 rounded-lg px-4 text-sm font-medium text-ink outline-none transition-[border-color,background-color,color,transform] duration-200 enabled:hover:border-danger/70 enabled:hover:bg-danger/15 enabled:hover:text-danger active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black/30 disabled:cursor-not-allowed disabled:opacity-40"
+              className="glass-btn flex h-11 shrink-0 items-center justify-center gap-2 rounded-lg px-4 text-sm font-medium text-ink outline-none transition-[border-color,color,transform] duration-200 enabled:hover:scale-[1.04] enabled:hover:border-danger/70 enabled:hover:text-danger active:scale-[0.99] focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black/30 disabled:cursor-not-allowed disabled:opacity-40"
             >
               <TrashIcon />
               Hapus
@@ -378,7 +378,7 @@ export default function Formatter() {
                   ? 'border-success/70 bg-success/25 shadow-[0_0_24px_rgba(40,167,69,0.35)]'
                   : copyError
                     ? 'border-danger/70 bg-danger/20'
-                    : 'enabled:hover:scale-[1.03] enabled:hover:border-white/70 enabled:hover:bg-white/15 active:translate-y-[-1px]'
+                    : 'enabled:hover:scale-[1.04] enabled:hover:border-white/70 active:scale-[0.99]'
               }`}
             >
               {copied ? (
