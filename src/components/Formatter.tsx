@@ -40,6 +40,8 @@ function formatLines(raw: string, mode: CaseMode): string[] {
     .map((l) => applyCase(l, mode))
 }
 
+/* ---- Ikon inline SVG (tanpa dependensi) ---- */
+
 function CheckIcon() {
   return (
     <svg
@@ -52,8 +54,73 @@ function CheckIcon() {
       strokeWidth={2.5}
       strokeLinecap="round"
       strokeLinejoin="round"
+      className="shrink-0"
     >
       <path d="M20 6 9 17l-5-5" />
+    </svg>
+  )
+}
+
+function CopyIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="shrink-0"
+    >
+      <rect width="14" height="14" x="8" y="8" rx="2" />
+      <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
+    </svg>
+  )
+}
+
+function TrashIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="shrink-0"
+    >
+      <path d="M3 6h18" />
+      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+      <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+      <line x1="10" x2="10" y1="11" y2="17" />
+      <line x1="14" x2="14" y1="11" y2="17" />
+    </svg>
+  )
+}
+
+function TypeIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="shrink-0"
+    >
+      <path d="M4 7V4h16v3" />
+      <path d="M9 20h6" />
+      <path d="M12 4v16" />
     </svg>
   )
 }
@@ -70,7 +137,7 @@ function ChevronDownIcon({ open }: { open: boolean }) {
       strokeWidth={2}
       strokeLinecap="round"
       strokeLinejoin="round"
-      className={`shrink-0 text-slate-400 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+      className={`shrink-0 text-muted transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
     >
       <path d="m6 9 6 6 6-6" />
     </svg>
@@ -169,9 +236,12 @@ function ModeDropdown({
         aria-controls="mode-listbox"
         aria-label="Mode huruf"
         aria-activedescendant={open ? `mode-option-${MODES[highlighted].id}` : undefined}
-        className="flex h-12 w-full items-center justify-between gap-2 rounded-sm border border-line-strong bg-surface px-3.5 text-sm text-ink outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand focus:ring-offset-surface"
+        className="glass-btn flex h-12 w-full items-center justify-between gap-2.5 rounded-lg px-4 text-sm font-medium text-ink outline-none transition-[border-color,background-color,transform] duration-200 hover:border-white/70 hover:bg-white/15 focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black/30 active:scale-[0.99]"
       >
-        <span className="truncate">{MODES[selectedIndex].label}</span>
+        <span className="flex min-w-0 items-center gap-2.5">
+          <TypeIcon />
+          <span className="truncate">{MODES[selectedIndex].label}</span>
+        </span>
         <ChevronDownIcon open={open} />
       </button>
 
@@ -179,7 +249,7 @@ function ModeDropdown({
         <div
           id="mode-listbox"
           role="listbox"
-          className="absolute left-0 right-0 top-full z-20 mt-1 rounded-md border border-line bg-surface p-1 shadow-[0_2px_12px_rgba(0,0,0,0.35)]"
+          className="glass-menu absolute left-0 right-0 top-full z-20 mt-2 rounded-lg p-1.5"
         >
           {MODES.map((m, i) => (
             <div
@@ -192,9 +262,9 @@ function ModeDropdown({
                 onChange(m.id)
                 setOpen(false)
               }}
-              className={`flex cursor-pointer items-center justify-between gap-2 rounded-sm px-3 py-2 text-sm transition-colors hover:bg-white/5 ${
-                i === highlighted ? 'bg-white/5' : ''
-              } ${m.id === value ? 'font-medium text-brand' : 'text-ink'}`}
+              className={`flex cursor-pointer items-center justify-between gap-2 rounded-md px-3.5 py-3 text-sm transition-colors duration-150 ${
+                i === highlighted ? 'bg-white/10' : ''
+              } ${m.id === value ? 'font-medium text-ink' : 'text-muted hover:bg-white/10 hover:text-ink'}`}
             >
               <span>{m.label}</span>
               {m.id === value && <CheckIcon />}
@@ -255,19 +325,20 @@ export default function Formatter() {
 
   return (
     <div className="card-enter w-full max-w-5xl">
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-6 md:grid-cols-2 lg:gap-8">
         {/* ===== Kartu Input ===== */}
-        <section className="flex flex-col rounded-md border border-line bg-surface/70 p-6 shadow-[0_2px_12px_rgba(0,0,0,0.35)] backdrop-blur-md sm:p-8">
-          <div className="mb-4 flex items-center justify-between">
-            <label htmlFor="denah-input" className="text-sm font-medium tracking-wide text-muted">
+        <section className="glass-panel flex flex-col rounded-lg p-6 sm:p-8">
+          <div className="mb-5 flex items-center justify-between gap-3">
+            <label htmlFor="denah-input" className="text-xs font-semibold tracking-[0.12em] text-muted">
               Input
             </label>
             <button
               type="button"
               onClick={() => setInput('')}
               disabled={!input.trim()}
-              className="rounded-sm border-[1.5px] border-line-strong px-3 py-1.5 text-sm font-medium text-ink transition-colors enabled:hover:border-danger enabled:hover:bg-danger/10 enabled:hover:text-danger focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-surface disabled:cursor-not-allowed disabled:opacity-40"
+              className="glass-btn flex h-11 shrink-0 items-center justify-center gap-2 rounded-lg px-4 text-sm font-medium text-ink outline-none transition-[border-color,background-color,color,transform] duration-200 enabled:hover:border-danger/70 enabled:hover:bg-danger/15 enabled:hover:text-danger active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black/30 disabled:cursor-not-allowed disabled:opacity-40"
             >
+              <TrashIcon />
               Hapus
             </button>
           </div>
@@ -277,14 +348,14 @@ export default function Formatter() {
             onChange={handleInputChange}
             onPaste={handlePaste}
             placeholder="Tulis atau tempel daftar alamat di sini, satu per baris"
-            className="studio-scroll min-h-[320px] flex-1 w-full resize-none rounded-sm border border-line-strong bg-surface p-4 text-sm leading-relaxed text-ink outline-none transition-colors placeholder:text-slate-500 focus:border-brand focus:ring-2 focus:ring-brand focus:ring-offset-surface"
+            className="glass-field studio-scroll min-h-[320px] flex-1 w-full resize-none rounded-lg p-5 text-sm leading-relaxed text-ink outline-none transition-[border-color,box-shadow] duration-200 placeholder:text-muted/60 hover:border-white/30 focus:border-white/50 focus:ring-2 focus:ring-white/25"
           />
         </section>
 
         {/* ===== Kartu Hasil ===== */}
-        <section className="flex flex-col rounded-md border border-line bg-surface/70 p-6 shadow-[0_2px_12px_rgba(0,0,0,0.35)] backdrop-blur-md sm:p-8">
-          <div className="mb-4 flex items-center justify-between gap-3">
-            <label htmlFor="denah-result" className="text-sm font-medium tracking-wide text-muted">Hasil</label>
+        <section className="glass-panel flex flex-col rounded-lg p-6 sm:p-8">
+          <div className="mb-5 flex items-center justify-between gap-3">
+            <label htmlFor="denah-result" className="text-xs font-semibold tracking-[0.12em] text-muted">Hasil</label>
             <div className="w-full sm:w-auto sm:shrink-0">
               <ModeDropdown value={mode} onChange={setMode} />
             </div>
@@ -294,20 +365,20 @@ export default function Formatter() {
             readOnly
             value={lines.join('\n')}
             placeholder="Hasil format akan muncul di sini"
-            className="studio-scroll min-h-[320px] flex-1 w-full resize-none rounded-sm border border-line-strong bg-surface p-4 text-sm leading-relaxed text-ink outline-none transition-colors placeholder:text-slate-500 focus:border-brand focus:ring-2 focus:ring-brand focus:ring-offset-surface"
+            className="glass-field studio-scroll min-h-[320px] flex-1 w-full resize-none rounded-lg p-5 text-sm leading-relaxed text-ink outline-none transition-[border-color,box-shadow] duration-200 placeholder:text-muted/60 hover:border-white/30 focus:border-white/50 focus:ring-2 focus:ring-white/25"
           />
-          <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center">
             <button
               type="button"
               onClick={handleCopy}
               disabled={!lines.length}
               aria-live="polite"
-              className={`flex h-12 w-full items-center justify-center gap-2 whitespace-nowrap rounded-sm px-4 text-sm font-semibold text-white transition-[transform,box-shadow,background-color] duration-200 enabled:hover:scale-[1.03] enabled:hover:shadow-[0_2px_8px_rgba(0,0,0,0.25)] active:translate-y-[-1px] disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none ${
+              className={`glass-btn flex h-12 w-full items-center justify-center gap-2.5 whitespace-nowrap rounded-lg px-5 text-sm font-semibold text-ink transition-[transform,background-color,border-color,box-shadow] duration-200 disabled:cursor-not-allowed disabled:opacity-40 ${
                 copied
-                  ? 'bg-success'
+                  ? 'border-success/70 bg-success/25 shadow-[0_0_24px_rgba(40,167,69,0.35)]'
                   : copyError
-                    ? 'bg-danger'
-                    : 'bg-brand enabled:hover:bg-brand-dark'
+                    ? 'border-danger/70 bg-danger/20'
+                    : 'enabled:hover:scale-[1.03] enabled:hover:border-white/70 enabled:hover:bg-white/15 active:translate-y-[-1px]'
               }`}
             >
               {copied ? (
@@ -318,7 +389,10 @@ export default function Formatter() {
               ) : copyError ? (
                 'Gagal nyalin'
               ) : (
-                `Salin → CorelDraw${lines.length ? ` (${lines.length})` : ''}`
+                <>
+                  <CopyIcon />
+                  {`Salin → CorelDraw${lines.length ? ` (${lines.length})` : ''}`}
+                </>
               )}
             </button>
           </div>
