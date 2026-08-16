@@ -329,7 +329,7 @@ export default function Formatter() {
         {/* ===== Kartu Input ===== */}
         <section className="glass-panel flex flex-col rounded-lg p-6 sm:p-8">
           <div className="mb-5 flex items-center justify-between gap-3">
-            <label htmlFor="denah-input" className="text-shadow-soft text-xs font-semibold tracking-[0.12em] text-muted">
+            <label htmlFor="denah-input" className="text-shadow-soft text-xs font-semibold tracking-[0.12em] text-ink">
               Input
             </label>
             <button
@@ -355,7 +355,7 @@ export default function Formatter() {
         {/* ===== Kartu Hasil ===== */}
         <section className="glass-panel flex flex-col rounded-lg p-6 sm:p-8">
           <div className="mb-5 flex items-center justify-between gap-3">
-            <label htmlFor="denah-result" className="text-shadow-soft text-xs font-semibold tracking-[0.12em] text-muted">Hasil</label>
+            <label htmlFor="denah-result" className="text-shadow-soft text-xs font-semibold tracking-[0.12em] text-ink">Hasil</label>
             <div className="w-full sm:w-auto sm:shrink-0">
               <ModeDropdown value={mode} onChange={setMode} />
             </div>
