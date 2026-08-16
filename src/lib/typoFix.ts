@@ -26,7 +26,9 @@ const CANONICAL: string[] = [
 const EXPLICIT_MAP: Record<string, string> = {
   jl: 'jalan',
   jln: 'jalan',
+  jlan: 'jalan', // typo umum; dijaga tetap terkoreksi walau pendek (4 huruf)
   gg: 'gang',
+  komplek: 'kompleks', // typo umum; kompensasi fuzzy yang kini min. 5 huruf
 }
 
 function isLetter(ch: string): boolean {
@@ -54,9 +56,13 @@ function levenshtein(a: string, b: string): number {
   return dp[m][n]
 }
 
-/** Fuzzy match against the canonical dictionary (distance ≤ 1, ≥ 4 letters). */
+/**
+ * Fuzzy match terhadap kamus kanonikal (jarak ≤ 1, minimal 5 huruf).
+ * Minimal 5 huruf: kata 4 huruf terlalu mudah "mirip" nama orang
+ * (mis. "yang" → "gang", "gana" → "gang", "bara" → "barat").
+ */
 function fuzzyCorrection(core: string): string | undefined {
-  if (core.length < 4 || CANONICAL.includes(core)) return undefined
+  if (core.length < 5 || CANONICAL.includes(core)) return undefined
   return CANONICAL.find((w) => levenshtein(core, w) <= 1)
 }
 
@@ -69,31 +75,72 @@ function applyOriginalCasing(word: string, original: string): string {
   return word
 }
 
-function fixToken(token: string): string {
+/** Pecah token: prefix/kata/suffix (kata = inti huruf). Undefined bila tanpa huruf. */
+function splitToken(token: string):
+  | { prefix: string; original: string; core: string; suffix: string }
+  | undefined {
   let start = 0
   let end = token.length
   while (start < end && !isLetter(token[start])) start++
   while (end > start && !isLetter(token[end - 1])) end--
+  if (start === end) return undefined
+  return {
+    prefix: token.slice(0, start),
+    original: token.slice(start, end),
+    core: token.slice(start, end).toLowerCase(),
+    suffix: token.slice(end),
+  }
+}
 
-  const prefix = token.slice(0, start)
-  const suffix = token.slice(end)
-  const core = token.slice(start, end).toLowerCase()
+function fixToken(token: string): string {
+  const parts = splitToken(token)
+  if (!parts) return token
+  const { prefix, original, core, suffix } = parts
 
-  if (core === '') return token
+  // Singkatan & typo eksplisit selalu dikoreksi (apa pun hurufnya).
+  if (Object.hasOwn(EXPLICIT_MAP, core)) {
+    // Titik singkatan ("jl.") tidak ikut tersisa saat diperluas
+    // menjadi kata penuh ("jalan." adalah salah).
+    const expanded = prefix + applyOriginalCasing(EXPLICIT_MAP[core], original)
+    return suffix === '.' ? expanded : expanded + suffix
+  }
 
-  const correction = Object.hasOwn(EXPLICIT_MAP, core)
-    ? EXPLICIT_MAP[core]
-    : fuzzyCorrection(core)
+  // Kata berawalan huruf besar = proper name (nama orang/daerah) →
+  // jangan di-fuzzy ("Yang" ≠ "gang", "Gana" ≠ "gang").
+  if (original[0] === original[0].toUpperCase()) return token
+
+  const correction = fuzzyCorrection(core)
   if (correction === undefined) return token
 
-  return prefix + applyOriginalCasing(correction, token.slice(start, end)) + suffix
+  return prefix + applyOriginalCasing(correction, original) + suffix
+}
+
+/**
+ * Sinyal bahwa baris memang alamat (bukan daftar nama).
+ * Tanpa sinyal → typo-fix dilewati total, baris dibiarkan apa adanya.
+ * Sinyal: singkatan/typo eksplisit, kata alamat verbatim, angka,
+ * penanda "no/rt/rw", atau kata ≥6 huruf yang mirip kata alamat
+ * (kata panjang jarang nyerempet nama orang).
+ */
+function lineHasAddressSignal(tokens: string[]): boolean {
+  return tokens.some((token) => {
+    const parts = splitToken(token)
+    if (!parts) return false
+    const { core } = parts
+    if (Object.hasOwn(EXPLICIT_MAP, core)) return true
+    if (CANONICAL.includes(core)) return true
+    if (/[0-9]/.test(token)) return true
+    if (core === 'no' || core === 'rt' || core === 'rw') return true
+    return core.length >= 6 && fuzzyCorrection(core) !== undefined
+  })
 }
 
 /** Correct common Indonesian address-word typos in a single line. */
 export function fixAddressTypos(line: string): string {
-  return line
-    .split(/\s+/)
-    .filter(Boolean)
-    .map(fixToken)
-    .join(' ')
+  const tokens = line.split(/\s+/).filter(Boolean)
+  if (tokens.length === 0) return line
+  // Gate konteks — perbaikan bug "Yang mengundang" → "Gang mengundang"
+  // (16-08-2026): baris tanpa sinyal alamat tidak boleh disentuh.
+  if (!lineHasAddressSignal(tokens)) return line
+  return tokens.map(fixToken).join(' ')
 }
