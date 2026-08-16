@@ -12,23 +12,22 @@ npm run dev
 
 Buka http://localhost:5173
 
-## Ganti background image
+## Ganti background video
 
-Buka `src/globals.css`, ubah variabel di bagian `:root`:
+- **Video:** taruh file di `/public/video/`, lalu ubah `src` di `src/App.tsx` (mis. `/video/cok.webm`).
+- **Poster + foto fallback** (tampil sebelum video termuat / saat area tak tertutup video): taruh di `/public/images/`, lalu ubah `--bg-image` di `src/globals.css` (`:root`).
 
 ```css
 :root {
-  --bg-image: url('/images/background.jpg'); /* nama file gambar */
-  --bg-size: cover;                          /* cover | contain | auto */
-  --bg-position: center center;              /* posisi gambar */
-  --bg-repeat: no-repeat;
-  --bg-attachment: fixed;                   /* fixed = parallax */
-  --bg-overlay-opacity: 0.45;               /* 0.0 - 1.0 */
-  --bg-overlay-color: 0 0 0;               /* warna overlay R G B */
+  --bg-image: url('/images/cok.webp'); /* poster + fallback */
+  --bg-overlay-opacity: 0;             /* 0.0 - 1.0 — 0 = background apa adanya */
 }
 ```
 
-Taruh file gambar di `/public/images/` lalu sesuaikan nama di `--bg-image`.
+Perilaku tampilan (di `src/globals.css`, `.bg-video`):
+
+- **Landscape (desktop):** `contain` + zoom 1.1 → adegan ~91%, tanpa bar.
+- **Portrait (HP):** `cover` penuh layar + `object-position: 75% center` (menampilkan sisi kanan-tengah adegan).
 
 ## Build production
 
@@ -37,15 +36,32 @@ npm run build
 npm run preview
 ```
 
+## Deploy ke Firebase Hosting
+
+```bash
+npm run build && firebase deploy --only hosting
+```
+
+Live: **https://shodirintextformatter.web.app** (project `shodirintextformatter`, lihat `.firebaserc`)
+
+Konfigurasi cache (`firebase.json`):
+
+- Assets (`js|css`) & media (`webm|webp|svg`) → `public, max-age=31536000, immutable` (1 tahun).
+- `index.html` dan `/` → `no-cache` (selalu revalidasi → update UI langsung kena).
+
+**Penting — saat mengganti video/poster:** karena media di-cache immutable setahun, WAJIB rename nama file (mis. `cok-v2.webm`) dan update referensinya di `src/App.tsx` / `--bg-image`. File bernama sama tidak akan diminta ulang browser.
+
 ## Struktur project
 
 ```
 src/
 ├── main.tsx        ← entry point
-├── App.tsx
-├── globals.css     ← pengaturan background di sini
+├── App.tsx         ← video background (src /video/...)
+├── globals.css     ← pengaturan background & veil di sini
 └── components/
     └── Formatter.tsx
 public/
-└── images/         ← taruh gambar background di sini
+├── images/         ← poster + fallback foto
+└── video/          ← video background
+firebase.json       ← hosting: cache immutable + SPA rewrite
 ```
