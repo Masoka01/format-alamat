@@ -33,3 +33,6 @@ next-env.d.ts
 # artifacts verifikasi (artefak sesi)
 .playwright-mcp/
 desktop-studio.png
+
+# firebase (cache lokal deploy)
+/.firebase/
