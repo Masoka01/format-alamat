@@ -34,6 +34,21 @@ body {
   background-repeat: no-repeat;
   background-attachment: fixed;
   background-color: #212529;
+  /* Stacking context sendiri: video (z-index -1) tampil di atas foto,
+     tapi tetap di bawah veil (z-index 0) dan konten (z-index 1) */
+  isolation: isolate;
+}
+
+/* ---- Video background (di atas foto fallback, di bawah veil) ---- */
+.bg-video {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background-color: #212529; /* warna sementara sebelum video termuat */
+  pointer-events: none;
 }
 
 /* Mobile: attachment fixed bermasalah di iOS → pakai scroll biasa */
