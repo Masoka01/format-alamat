@@ -16,6 +16,10 @@ export default function App() {
 
   return (
     <main className="bg-main bg-overlay min-h-[100dvh]">
+      {/* Backdrop blur statis dari poster — mengisi area yang tidak
+          tertutup video (contain). Layering: backdrop (-2) < video (-1)
+          < veil (0) < konten (1). */}
+      <div className="bg-video-backdrop" aria-hidden="true" />
       {/* Video background — di bawah veil (lihat .bg-video di globals.css).
           Foto /images/cok.webp tetap jadi fallback CSS di .bg-main
           dan poster selama video belum termuat. */}

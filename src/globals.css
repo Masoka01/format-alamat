@@ -40,16 +40,49 @@ body {
   isolation: isolate;
 }
 
-/* ---- Video background (di atas foto fallback, di bawah veil) ---- */
+/* ---- Backdrop blur statis (poster) — mengisi area yang tidak
+   tertutup video saat contain. Statis = murah (satu gambar + blur
+   CSS), TANPA decode video kedua. ---- */
+.bg-video-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background-image: var(--bg-image);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-color: #212529;
+  filter: blur(32px) saturate(120%);
+  transform: scale(1.1); /* hindari tepi transparan akibat blur */
+  pointer-events: none;
+}
+
+/* ---- Video background (di atas backdrop & foto fallback, di bawah veil) ----
+   object-fit: contain → video tampil hampir UTUH ("crop tipis"), bukan
+   cover yang memotong 74% di layar HP. Area sisa diisi backdrop blur.
+   Zoom skala dari tengah: crop simetris tipis per sisi.
+   - Landscape (default 1.1): ≈ rasa cover awal (adegan ~91% lebar,
+     tanpa bar) — desktop tidak berubah kesannya.
+   - Portrait (1.3): pilihan user "crop tipis" — adegan ~77% lebar,
+     video ~34% tinggi layar.
+   Satu variabel --bg-video-zoom untuk tuning. */
 .bg-video {
+  --bg-video-zoom: 1.1;
   position: fixed;
   inset: 0;
   z-index: -1;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  transform: scale(var(--bg-video-zoom));
   background-color: #212529; /* warna sementara sebelum video termuat */
   pointer-events: none;
+}
+
+@media (orientation: portrait) {
+  .bg-video {
+    --bg-video-zoom: 1.3;
+  }
 }
 
 /* Mobile: attachment fixed bermasalah di iOS → pakai scroll biasa */
